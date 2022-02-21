@@ -1,0 +1,68 @@
+---
+title: "RMarkdown lengths"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(here)
+```
+
+This document shows how I generated the dataset `lablines.csv`. 
+
+## Step 1: Get the names of all the RMarkdown files
+
+This file uses the `here` package to create paths, but refers to a directory on my local computer that does not appear in the repository. Therefore, this code is not fully reproducible. 
+
+```{r}
+tidyfolder <- here("..", "..", "STAT220", "LL\ labs", "tidy", "pre-labs")
+formulafolder <- here("..", "..", "STAT220", "LL\ labs", "formula", "pre-labs")
+tidyfiles <- list.files(path = tidyfolder, full.names=TRUE)[-1] 
+names(tidyfiles) <- list.files(path = tidyfolder)[-1]
+formulafiles <- list.files(path = formulafolder, full.names=TRUE )[-1]
+names(formulafiles) <- list.files(path = formulafolder)[-1]
+```
+
+## Step 2: Read the RMarkdown documents
+
+```{r}
+tidyfiles_full <- tidyfiles %>%
+  map(read_lines) %>%
+  map_int(length) %>%
+  as_tibble(rownames = "file") %>%
+  rename(lines = value)
+formulafiles_full <- formulafiles %>%
+  map(read_lines) %>%
+  map_int(length) %>%
+  as_tibble(rownames = "file") %>%
+  rename(lines = value)
+```
+
+## Step 3: Join the formula and tidyverse data
+
+```{r}
+tidyfiles_full <- tidyfiles_full %>%
+  mutate(section = "tidy") %>%
+  mutate(file = str_remove(file, "STAT_220_"), 
+         file = str_remove(file, ".Rmd"), 
+         file = str_remove(file, "PreLab"),
+         file = str_remove(file, "tidy"),
+         file = str_remove(file, "-"),
+         file = str_remove(file, "_"))
+formulafiles_full <- formulafiles_full %>%
+  mutate(section = "formula") %>%
+  mutate(file = str_remove(file, "STAT_220_"), 
+         file = str_remove(file, ".Rmd"), 
+         file = str_remove(file, "PreLab"),
+         file = str_remove(file, "formula"),
+         file = str_remove(file, "-"),
+         file = str_remove(file, "_"))
+labs <- tidyfiles_full %>%
+  bind_rows(formulafiles_full) 
+```
+
+## Step 4: Write out data
+```{r}
+write_csv(labs, here("data", "processed", "lablines.csv"))
+```

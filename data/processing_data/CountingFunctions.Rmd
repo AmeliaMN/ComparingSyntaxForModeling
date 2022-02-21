@@ -1,0 +1,95 @@
+---
+title: "Number of functions"
+author: "Amelia McNamara"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(knitr)
+```
+
+This file shows how I generated the datasets `allfunctions.csv` and `csfunctions.csv`, which enumerate all the functions I showed in my labs in the Fall 2020 semester. 
+
+Because parts of this script need to be run in different folders, this document cannot be run as-is. 
+
+## Step 1: Get all the R code
+
+The first step in this process is to process all RMarkdown documents into .R script files. The `purl()` function will do this for you. I moved this file into the folder where all my lab files were kept.
+
+```{r, eval = FALSE}
+# this stuff gets run in the labs folder
+here::i_am("LL labs/number_of_functions.Rmd")
+library(here)
+lab_filenames <- tibble(filename = list.files(path = here("LL labs"), recursive = TRUE, full.names = TRUE))
+lab_filenames <- lab_filenames %>%
+  filter(str_detect(filename, ".Rmd")) %>%
+  filter(str_detect(filename, "PreLab"))
+
+map(lab_filenames$filename, purl)
+```
+
+After running this code, you should have a .R file that corresponds to every RMarkdown document you initially had. (RMarkdown documents are preserved.) Rather than moving the files programmatically or attempting to write the appropriate filepath, I drag-and-dropped all these files into my paper folder. 
+
+## Step 2: Parse the code 
+Now that you have a bunch of .R files, you can use the function `getParseData()` to parse the files, and find the functions that are used. 
+
+```{r}
+# this is the stuff you can run in the papers folder
+here::i_am("data/processing_data/number_of_functions.Rmd")
+library(here)
+purled_labs <- list.files(path = here("data/prelabs"), full.names = TRUE)
+names(purled_labs) <- list.files(path = here("data/prelabs"))
+
+parsed_all <- map_dfr(purled_labs, ~getParseData(parse(file = .)), .id = "filename")
+
+allfunctions <- parsed_all %>%
+  filter(token == "SYMBOL_FUNCTION_CALL")  %>%
+  mutate(section = case_when(str_detect(filename, "tidy") ~ "tidy",
+                             str_detect(filename, "formula") ~ "formula",
+                             TRUE ~ NA_character_)) 
+
+allfunctions <- allfunctions %>%
+  group_by(section, text) %>%
+  summarize(n = n())
+
+write_csv(allfunctions, "data/processed/allfunctions.csv")
+```
+
+At the end of this process, you should have a .csv file with all the functions from the .R files. 
+
+
+## Step 3 (optional): Parse other files 
+
+For my classes, I had attempted to generate a cheatsheet a priori that contained all the functions used in the class. So, I wanted to parse these documents separately. This section of the document goes through that process, which is very similar to steps 1 and 2 above. 
+
+```{r}
+cs_filenames <- tibble(filename = list.files(path = here("data/cheatsheets"), recursive = TRUE, full.names = TRUE))
+
+map(cs_filenames$filename, purl)
+```
+
+
+```{r}
+purled_cs <- list.files(path = here("data/cheatsheets"), full.names = TRUE) 
+names(purled_cs) <- list.files(path = here("data/cheatsheets"))
+purled_cs <- purled_cs[str_ends(purled_cs, ".R")]
+
+parsed_cs <- map_dfr(purled_cs, ~getParseData(parse(file = .)), .id = "filename")
+
+csfunctions <- parsed_cs %>%
+  filter(token == "SYMBOL_FUNCTION_CALL")  %>%
+  mutate(section = case_when(str_detect(filename, "tidy") ~ "tidy",
+                             str_detect(filename, "formula") ~ "formula",
+                             TRUE ~ NA_character_)) 
+
+csfunctions <- csfunctions %>%
+  group_by(section, text) %>%
+  summarize(n = n())
+
+write_csv(csfunctions, "data/processed/csfunctions.csv")
+```
+
+
+

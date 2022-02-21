@@ -6,6 +6,7 @@ data/*
 !data/anonymized/
 !data/processed/
 !data/prelabs/
+!data/processing_data/
 data/raw/*
 *.html
 *.pdf
