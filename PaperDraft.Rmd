@@ -1,0 +1,1171 @@
+---
+title: "Teaching modeling in introductory statistics: A comparison of formula and tidyverse syntaxes"
+
+# to produce blinded version set to 1
+blinded: 0
+
+authors:
+- name: Amelia McNamara ^[amelia.mcnamara@stthomas.edu]
+  affiliation: |
+    | Department of Computer & Information Sciences, University of St Thomas
+  email: amelia.mcnamara@stthomas.edu
+keywords: |
+  R language, instruction, data science, statistical computing
+  
+abstract: >
+  This paper reports on an experiment run in a pair of introductory statistics labs, attempting to determine which of two R syntaxes was better for introductory teaching and learning: formula or tidyverse. One lab was conducted fully in the formula syntax, the other in tidyverse. Analysis of incidental data from YouTube and RStudio Cloud show interesting distinctions. The formula section appeared to watch a larger proportion of pre-lab YouTube videos, but spend less time computing on RStudio Cloud. Conversely, the tidyverse section watched a smaller proportion of the videos and spent more time on RStudio Cloud. Analysis of lab materials showed that tidyverse labs tended to be slightly longer (in terms of lines in the provided RMarkdown materials, as well as minutes of the associated YouTube videos), and the tidyverse labs exposed students to more distinct R functions. However, both labs relied on a quite small vocabulary of consistent functions. Analysis of pre- and post-survey data show no differences between the two labs, so students appeared to have a positive experience regardless of section. This work provides additional evidence for instructors looking to choose between syntaxes for introductory statistics teaching. 
+bibliography: references.bib
+output:
+  bookdown::pdf_book:
+    base_format: rticles::asa_article
+    keep_tex: yes
+    includes:
+      in_header: header.tex
+header-includes:
+-  \usepackage{amsmath}
+- \usepackage{booktabs}
+- \usepackage{float}
+- \usepackage{caption}
+- \usepackage{subcaption}
+- \usepackage{xcolor,soul}
+- \usepackage{xspace}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r blinding, echo=FALSE}
+blind <- FALSE
+```
+
+
+```{r setup, include=FALSE}
+knitr::knit_hooks$set(document = function(x) {sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)})
+
+
+knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, warning = FALSE, out.width = "80%", fig.asp = 0.618, fig.align = "center", time_it = FALSE, comment="")
+here::i_am("PaperDraft.Rmd")
+library(kableExtra)
+options(knitr.kable.NA = "", ggplot2.discrete.fill = c("#64baaa", "#154e56"), ggplot2.discrete.colour = c("#64baaa", "#154e56"))
+
+our_table <- function(x, ...) {
+  kableExtra::kbl(x, ...) %>%
+    kableExtra::kable_styling(latex_options = "striped")
+}
+
+# Some code to add chunk captions
+library(knitr)
+chunk_hook = knit_hooks$get("chunk")
+knit_hooks$set(chunk = function(x, options) {
+  x = chunk_hook(x, options)
+  if(!is.null(options$codecap))
+    x = paste0(x, "\n\\captionof{chunk}{", options$codecap,"}\n")
+  if(!is.null(options$ref))
+    x = paste0(x, "\n\\label{", options$ref,"}\n")
+  
+  # Based on https://stackoverflow.com/questions/53887473/how-can-i-control-fontsize-and-linestretch-of-code-chunks-independently-from-the
+  code_space = 1
+  text_space = 2
+  
+  paste0(
+    "\\linespread{", code_space,"}\n", 
+    x,
+    "\\linespread{", text_space,"}\n",
+    "\\vspace{3mm}\\setlength{\\parindent}{15pt}"
+  )
+})
+```
+
+
+```{r, cache = FALSE}
+library(here)
+library(tidyverse)
+library(kableExtra)
+library(lme4)
+library(broom.mixed)
+library(bookdown)
+ggplot2::theme_set(ggplot2::theme_gray(base_size = 14))
+```
+
+
+
+
+```{r data-load, cache = FALSE}
+youtube_weeks <- read_csv(here("data", "processed", "youtube_weeks.csv"), col_types = cols(
+  week = col_double(),
+  section = col_character(),
+  n_videos = col_double(),
+  watches = col_double(),
+  uniques = col_double(),
+  hours = col_double(),
+  tot_length = col_double(),
+  tot_min = col_double(),
+  mpu = col_double(),
+  mps = col_double(),
+  percent_per_student = col_double(),
+  percent_per_user= col_double()
+)) 
+
+youtube_videos <- read_csv(here("data", "processed", "youtube_videos.csv"), col_types = cols(
+  week = col_double(),
+  Video = col_character(),
+  `Video title` = col_character(),
+  week_topic = col_character(),
+  `Video publish time` = col_character(),
+  `Unique viewers` = col_double(),
+  Views = col_double(),
+  `Watch time (hours)` = col_double(),
+  Subscribers = col_double(),
+  Impressions = col_double(),
+  `Impressions click-through rate (%)` = col_double(),
+  weeknum = col_double(),
+  section = col_character(),
+  tot_sec = col_double(),
+  tot_min = col_double()
+))
+
+rstudio_cloud <- read_csv(here("data", "processed", "rstudio_cloud.csv"), col_types = cols(
+  month = col_character(),
+  amount = col_double(),
+  section = col_character()
+)) %>%
+  mutate(section = if_else(section == "tidy", "tidyverse", section)) %>%
+  mutate(month = as_factor(month)) %>%
+  mutate(month = fct_relevel(month, "September", "October", "November", "December"))
+
+prepostsurvey <- read_csv(here("data", "anonymized", "prepost.csv"), col_types = cols(
+  Q1 = col_character(),
+  Q2 = col_character(),
+  Q11.x = col_character(),
+  Q12.x = col_character(),
+  Q13.x = col_character(),
+  Q14.x = col_character(),
+  Q15.x = col_character(),
+  Q16.x = col_character(),
+  Q18.x = col_character(),
+  Q19.x = col_character(),
+  Section.x = col_character(),
+  Q11.y = col_character(),
+  Q12.y = col_character(),
+  Q13.y = col_character(),
+  Q14.y = col_character(),
+  Q15.y = col_character(),
+  Q16.y = col_character(),
+  Q18.y = col_character(),
+  Q19.y = col_character(),
+  Q22 = col_character(),
+  Q23 = col_character(),
+  Section.y = col_character()
+))
+
+qs <- prepostsurvey %>%
+  slice(1)
+
+prepostsurvey <- prepostsurvey %>%
+  slice(-1) %>%
+   mutate(Section.x = case_when(
+     Section.x == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
+     Section.x == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
+   ),
+   Section.y = case_when(
+     Section.y == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
+     Section.y == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
+   ))
+
+
+allfunctions <- read_csv(here("data", "processed", "allfunctions.csv"),
+  col_types = cols(
+    section = col_character(),
+    text = col_character(),
+    n = col_double()
+  )
+) %>%
+  mutate(section = if_else(section == "tidy", "tidyverse", section))
+
+csfunctions <- read_csv(here("data", "processed", "csfunctions.csv"),
+  col_types = cols(
+    section = col_character(),
+    text = col_character(),
+    n = col_double()
+  )
+) %>%
+  mutate(section = if_else(section == "tidy", "tidyverse", section))
+
+lablines <- read_csv(here("data", "anonymized", "lablines.csv"),
+  col_types = cols(
+    file = col_character(),
+    lines = col_double(),
+    section = col_character()
+  )
+) %>%
+  mutate(section = if_else(section == "tidy", "tidyverse", section))
+
+topics <- tibble(week = 1:15, topic = c(NA, "DescribingData", "QuantitativeVariables", "CategoricalVariables", "Regression", "Bootstrap", "Randomization", "InferenceSingleProportion", "InferenceSingleMean", "TwoSample", NA, NA, "ANOVA", "ChiSquare", "RegressionInference"))
+```
+
+
+# Introduction
+
+When teaching statistics and data science, it is crucial for students to engage authentically with data. The revised Guidelines for Assessment and Instruction in Statistics Education (GAISE) College Report provides recommendations for instruction, including "Integrate real data with a context and purpose" and "Use technology to explore concepts and analyze data" [@carveretal2016]. Many instructors have students engage with data using technology through in-class experiences or separate lab activities. 
+
+An important pedagogical decision when choosing to teach data analysis is the choice of tool. There has long been a divide between 'tools for learning' and 'tools for doing' data analysis [@mcnamara2015a]. Tools for learning include applets, and standalone software like TinkerPlots, Fathom, or their next-generation counterpart CODAP [@konoldmiller2001; @finzer2002a; @CODAP2021].  Tools for doing are used by professionals, and include software packages like SAS as well as programming languages like Julia, R, and Python. 
+
+Many tools for learning were inspired by Rolf Biehler's 1997 paper, "Software for Learning and for Doing Statistics" [@biehler1997]. In it, Biehler called for more attention to the design of tools used for teaching. In particular, he was concerned with on-ramps for students (ensuring the tool was not too complex), as well as off-ramps (using one tool through an entire class, which could also extend further) [@biehler1997]. At the time he wrote the paper it was quite difficult to teach using an authentic tool for doing, because these tools lacked technological or pedagogical on-ramps.
+
+However, recent developments in Integrated Development Environments (IDEs) and pedagogical advances have opened space for a movement to teach even novices statistics and data science using programming. In particular, curricula using Python and R have become popular. In these curricula, educators make pedagogical decisions about what code to show students, and how to scaffold it. In both the Python and R communities, there have been movements to simplify syntax for students.
+
+For example, the UC Berkeley Data 8 course uses Python, including elements of the commonly-used `matplotlib` and `numpy` libraries as well as a specialized library written to accompany the curriculum called `datascience` [@adhikarietal2021; @deneroetal2020]. The `datascience` library was designed to reduce complexity in the code. At the K-12 level, the language Pyret has been developed as a simplified version of Python to accompany the Bootstrap Data Science curriculum [@krishnamurthietal2020]. 
+
+In R, the development of less-complex code for students has been under consideration for even longer. R offers non-standard evaluation, which allows package authors to create new 'syntax' for their packages [@morandatetal2012]. In human language, syntax is the set of rules for how words and sentences should be structured. If you use the wrong syntax in human language, people will probably still understand you, but they will be able to hear there is something wrong with how you structured your speech or writing. Syntax in programming languages is even more formal-- it governs what code will execute, run, or compile correctly. Using the wrong syntax means getting an error from the language. 
+
+Typically, programming languages have only one valid syntax. For example, an aphorism about the language Python is "There should be one-- and preferably only one --obvious way to do it" [@peters2004]. But, non-standard evaluation in R has allowed there to be many obvious ways to do the same task. There is some disagreement over whether syntax is a precise term for these differences. Other terms suggested for these variations in valid R code are 'dialects,' 'interfaces,' and 'domain specific languages.' Throughout this paper, we use the term syntax as a shorthand for these concepts.  At present, there are three primary syntaxes used: base, formula, and `tidyverse` [@mcnamara2018a].
+
+The base syntax is used by the base R language [@rcoreteam2020], and is characterized by the use of dollar signs and square brackets. The formula syntax uses the tilde to separate response and explanatory variable(s) [@pruimetal2017]. The `tidyverse` syntax uses a data-first approach, and the pipe to move data between steps [@wickhametal2019]. 
+
+A comparison of using the three syntaxes for univariate statistics and displays can be seen in \ref{r-syntax}. This example code, like the rest in this paper, uses the `palmerpenguins` data [@horstetal2020]. All three pieces of code accomplish the same tasks, and all three use the R language. But, the syntax varies considerably.
+
+```{r}
+library(palmerpenguins)
+data("penguins")
+penguins <- penguins %>%
+  drop_na(bill_length_mm)
+library(mosaic)
+```
+
+```{r r-syntax, ref = "r-syntax", codecap = "Making a histogram of bill length from the penguins dataset, then taking the mean, using three different R syntaxes. Base syntax is characterized by the dollar sign, formula by the tilde, and tidyvese is dataframe-first. In order for this code to run as-is, missing (NA) values need to be dropped before the code is run.", echo = TRUE, eval = FALSE}
+# base syntax
+hist(penguins$bill_length_mm)
+mean(penguins$bill_length_mm)
+
+# formula syntax
+gf_histogram(~bill_length_mm, data = penguins)
+mean(~bill_length_mm, data = penguins)
+
+# tidyverse syntax
+ggplot(penguins) + 
+  geom_histogram(aes(x = bill_length_mm))
+penguins %>%
+  summarize(mean(bill_length_mm))
+```
+
+There is some agreement about pedagogical decisions for teaching R. In particular, most educators agree that in order to reduce cognitive load, instructors should only teach one syntax, and to be as consistent as possible about that syntax [@mcnamaraetal2021]. There is also some agreement base R syntax is not the appropriate choice for introductory statistics, but there is widespread disagreement on whether the formula syntax or `tidyverse` syntax is better for novices.
+
+While there are strongly-held opinions on which syntax should be taught [@pruimetal2017; @cetinkaya-rundeletal2021], there is relatively little empirical evidence to support these opinions. In the realm of computer science, empirical studies by Andreas Stefik, et al have shown significant differences in the intuitiveness of languages, as well as error rates, based on language design choices [@stefiketal2011; @stefiksiebert2013]. Thus, it seems likely there are language choices that could make data science programming easier (or harder) for users, particularly novices. 
+
+Stefik's team is working to add data science functionality to their evidence-based programming language. As a first step toward understanding which elements of existing languages might be best to emulate, they ran an experiment comparing the three main R syntaxes [@rafalskietal2019]. The study showed no statistically significant difference between any of the three syntaxes with regard to time to completion or number of errors. However, there were significant interaction effects between syntax and task, which suggested some syntaxes might be more appropriate for certain tasks [@rafalskietal2019]. 
+
+Beyond this, examining the results from the study with an eye toward data science pedagogy showed common errors made by students related to their conceptions of dataframes and variables. For example, one of the figures from @rafalskietal2019 shows real student code with errors. In the first line of code, the student gets everything correct using formula syntax, with the exception of the name of the dataframe. When that code does not work, they try again using base R syntax, but again get the dataframe name wrong. After both those failures, they appear to fall back on computer science knowledge and try syntax quite different from R. This is consistent with other studies of novice behavior in R [@roberts2015]. It is not clear if this type of error was dependent on the syntax participants were asked to use. 
+
+The other missing element in this study was instruction. The study was a quick intervention showing students examples of a particular syntax, then asking them to duplicate that syntax in a new situation. But without any instruction about data science concepts like dataframes, it would be difficult to troubleshoot the syntax error mentioned above. The work served as the inspiration for the longer comparison of multiple R syntaxes in the classroom context described in this paper. 
+
+The remainder of this paper is organized into three sections. Section \ref{sec:methods} describes the setup of the study, the participants (\ref{sec:participants}) and their experience (\ref{sec:priorexp}), and the content of the course under investigation (\ref{sec:materials}). Section \ref{sec:results} contains results of the analysis, including a comparison of material lengths between the sections (\ref{sec:ll}), the number of unique functions shown in each section (\ref{sec:numfunc}), results from the pre- and post-survey (\ref{sec:prepost}), and analysis of YouTube (\ref{sec:yt}) and RStudio Cloud (\ref{sec:rstudio}) data. Finally, Section \ref{sec:discussion} discusses the results and opportunities for future study. 
+
+All materials used for this study are available on GitHub and are Creative Commons licensed, so they can be used or remixed by anyone who wants to use them. All code and anonymized data from this paper is also available on GitHub, for reproducibility. Data analysis was performed in R, and the paper is written in RMarkdown. The categorical color palette was chosen using Colorgorical [@gramazioetal2017], and colors for the Likert scale plot are from ColorBrewer [@harrowerbrewer2003]. Example data used throughout the paper is from `palmerpenguins` [@horstetal2020]. Packages used for the formula section were `mosaic` and `ggformula` (now loaded automatically with `mosaic`), for the tidyverse section the `tidyverse` and `infer` packages [@pruimetal2017; @kaplanpruim2020; @wickhametal2019; @brayetal2021]. 
+
+# Methods {#sec:methods}
+
+The author ran a pilot study in her introductory statistics labs. This study was run twice, once in the Spring 2020 semester and once in the Fall 2020 semester. The disruption of COVID-19 to the Spring 2020 semester made the resulting data unusable, so this paper focuses on just Fall 2020 data. 
+
+Data was collected from YouTube analytics for watch times, from RStudio Cloud for aggregated compute time, and from pre- and post-surveys of students. Participants for the pre- and post-survey were recruited from this pool after Institutional Research Board ethics review.
+
+## Participants {#sec:participants}
+
+Participants in the study were students enrolled in an introductory statistics course at a mid-sized private university in the upper Midwest. At this university, statistics students enroll in a lecture (approximately 60-90 students per section), which is broken into several smaller lab sections for hands-on work in statistical software. Lecture and lab sections are taught by different instructors, and the lab sections associated with a particular lecture often use different software. For example, one lab may use Minitab while the other two use Excel. However, every lab section (no matter what lecture it is associated with, or what software is used) does the same set of standardized assignments. This structure provides a consistent basis for comparison.
+
+In Fall 2020, the author taught two labs associated with the same lecture section, so all students saw the same lecture content. (A third lab was associated with the same lecture, using a different software, and was not considered.) Using random assignment (coin flip), the author selected one lab section to be instructed using formula syntax, and one to be instructed using `tidyverse` syntax. The goal was to compare syntaxes head-to-head. 
+
+Because the lab took place during the coronavirus pandemic, the instructor recorded YouTube videos of herself working through the pre-lab documents for each lab, and posted them in advance. Students watched the videos and worked through the associated pre-lab RMarkdown document on their own time, then came to synchronous class to ask questions and get help starting on the real lab assignment. Students used R through the online platform RStudio Cloud [@rstudiopbc2021].
+
+The two labs were of the same size ($n=21$ in both sections) and reasonably similar in terms of student composition. In both sections, approximately half of students were Business majors, with the other half a mix of other majors. 
+
+Participants for the pre- and post-survey were recruited from this pool after Institutional Research Board ethics review. For the pre-survey, $n=12$ and $n=13$ students consented to participate, and in the post-survey $n=8$ and $n=13$ responded. So, for paired analysis we have $n=8$ for the formula section, and $n=13$ for the `tidyverse` section. These sample sizes are very small, and because students could opt-in, may suffer from response bias. However, because we have additional usage data from non-respondents, some elements of the data analysis include the full class sample sizes of $n=21$. 
+
+```{r, eval=FALSE}
+prepostsurvey %>%
+  count(Section.x)
+
+prepostsurvey %>%
+  drop_na(Q11.y) %>%
+  count(Section.y)
+```
+
+## Prior programming experience {#sec:priorexp}
+
+```{r priorexptab, results='asis'}
+table(prepostsurvey$Q1, prepostsurvey$Section.x) %>%
+  kable(caption = "Responses from pre-survey about prior programming experience. The majority of students in both sections had no prior programming experience.", booktabs = TRUE)
+```
+
+To verify both groups of students had similar backgrounds, we compared the prior programming experience of the two groups of students. Table \ref{tab:priorexptab} shows results from the pre-survey.  While two additional students in the `tidyverse` section had prior programming experience, the overall pattern was the same. The majority of students in both sections had no prior programming experience. 
+
+```{r priorexp, eval = FALSE, fig.cap="Responses from pre-survey about prior programming experience. The majority of students in both sections had no prior programming experience."}
+ggplot(prepostsurvey) +
+  geom_bar(aes(x = Q1)) +
+  facet_wrap(~Section.x) +
+  xlab("Do you have any prior programming experience?") +
+  ylab("") +
+  scale_y_continuous(breaks = seq(from = 0, to = 10, by = 2)) +
+  theme(text = element_text(size = 14))
+```
+
+
+For the students who had programmed before, none had prior experience with R. Three students had prior experience with Java, 3 with Javascript, and a smaller number had experience with other languages, including C++ and Python.  
+
+
+## Materials {#sec:materials}
+
+Each week, the lab instructor prepared a "pre-lab" document in RMarkdown. The pre-lab covered the topics necessary to complete the standardized lab assignment done by all students across lab sections. Pre-lab documents included text explanations of statistical and R programming concepts, sample code, and blanks (both in the code and the text) for students to fill in as they worked. The instructor recorded YouTube videos of herself working through the pre-lab documents for each lab, and posted them in advance. Students were told to watch the pre-lab video and work through the RMarkdown document on their own time, then come to synchronous class to ask questions and get help starting on the real lab assignment. 
+
+The topics covered in Fall 2020 were as follows:
+
+1. [No lab, short week]
+2. Describing data: determining the number of observations and variables in a dataset, variable types. 
+3. Categorical variables: exploratory data analysis for one or two categorical variables. Frequency tables, relative frequency tables, bar charts, two-way tables, and side-by-side bar charts. 
+4. Quantitative variables: exploratory data analysis for one quantitative variable. Histograms, dot plots, density plots, and summary statistics like mean, median, and standard deviation. 
+5. Correlation and regression: exploratory data analysis for two quantitative variables. Correlation, scatterplot, simple linear regression as a descriptive technique. 
+6. Bootstrap intervals: the use of the bootstrap to construct non-parametric confidence intervals. 
+7. Randomization tests: the use of randomization to perform non-parametric hypothesis tests. 
+8. Inference for a single proportion: use of the normal distribution to construct confidence intervals and perform hypothesis tests for a single proportion. 
+9. Inference for a single mean: use of the t-distribution to construct confidence intervals and perform hypothesis tests for a single mean. 
+10. Inference for two samples: use of distributional approximations (normal or t) to perform inference for a difference of proportions or a difference of means.
+11. [No lab, assessment]
+12. [No lab, Thanksgiving]
+13. ANOVA: inference for more than two means, using the F distribution. 
+14. Chi-square: inference for more than two counts, using the $\chi^2$ distribution
+15. Inference for Regression: inference for the slope coefficient in simple linear regression, prediction and confidence intervals. Multiple regression. 
+
+
+Although this was a 15-week semester, there are only 12 lab topics. Labs were not held during the first week of classes or during Thanksgiving week. Additionally, there were two "lab assessments" to gauge student understanding of concepts within the context of their lab software. One took place during finals week, the other was scheduled in week 11. 
+
+# Results {#sec:results}
+
+## Summative assessments {#sec:assessment}
+
+One obvious question arising when considering the comparison of the two syntaxes is whether students performed better in one section or another. The IRB for this study did not cover examining student work (an obvious place for improved further research), so we cannot look at student outcomes on a per-assignment basis. However, running a randomization test for a difference in overall mean lab grades showed no significant difference between the two sections. While they may have been interesting differences in grades depending on the topic of the lab, we at least know these differences averaged out in the end. 
+
+Similarly, it would be interesting to know if student attitudes about the instructor were different from the summative student evaluations completed by all students at the end of the semester. These evaluations are anonymous, and the interface only provides summary statistics. Again, a test for a difference in means showed no difference in mean evaluation score on the questions "Overall, I rate this instructor an excellent teacher." and "Overall, I rate this course as excellent."
+
+
+
+## Lab lengths {#sec:ll}
+
+The first question we seek to answer is whether the materials presented to students were of approximately the same length. We can assess this based on the length of the pre-lab documents (in lines) and of the pre-lab videos (in minutes). 
+
+```{r prelablength, fig.cap = "Length of pre-lab RMarkdown documents each week, in lines. Data has been adjusted for the formula section in weeks 8 and 9, because an instructor error led this section to have only one document combining both weeks' work."}
+lablines <- lablines %>%
+  left_join(topics, by = c("file" = "topic")) %>%
+  complete(week = full_seq(1:15, 1), nesting(section))
+
+lablines %>%
+  ggplot(aes(x = week, y = lines, fill = section)) +
+  geom_col(position = "dodge") +
+  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 2)) +
+  ylab("Length (in lines) of pre-lab \n RMarkdown documents") +
+  xlab("Week of semester") +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    axis.title.y = element_text(size = 14)
+  )
+```
+
+
+
+```{r}
+labsfortesting <- lablines %>%
+  drop_na(file) %>%
+  pivot_wider(week, names_from = section, values_from = lines) %>%
+  mutate(diff = tidyverse - formula)
+library(infer)
+set.seed(11082021)
+labboot <- labsfortesting %>%
+  specify(response = diff) %>%
+  generate(reps = 5000, type = "bootstrap") %>%
+  calculate(stat = "mean") %>%
+  get_ci()
+```
+
+The length of the pre-lab RMarkdown documents can be measured using lines. Figure \ref{fig:prelablength} shows the number of lines of code for each section's pre-lab document, per week. 
+
+It indicates RMarkdown documents for the `tidyverse` section tended to be longer. We can compute a difference in lab lengths for each week, and compute the mean difference, which is `r round(mean(labsfortesting$diff))` lines. Because we only have 12 labs worth of data, we used a bootstrap procedure to generate a confidence interval for the mean of the differences. The 95\% interval is (`r round(labboot$lower_ci)`, `r round(labboot$upper_ci)`), which indicates labs for the `tidyverse` section were longer, but only by a few lines.
+
+A slightly longer length for these labs makes sense, because `tidyverse` code is characterized by multiple short lines strung together into a pipeline with `%>%`, while the formula syntax typically has single function calls, sometimes with more arguments.
+
+```{r videolength, fig.cap = "Length of pre-lab videos each week. Outlines help delineate multiple videos for a single week."}
+youtube_videos <- youtube_videos %>%
+  mutate(week_topic = as_factor(week_topic)) %>%
+  mutate(week_topic, fct_reorder(week_topic, week)) %>%
+  complete(week = full_seq(1:15, 1), nesting(section))
+
+
+youtube_videos %>%
+  ggplot(aes(x = week, y = tot_min, fill = section)) +
+  geom_col(position = "stack", color = "white") +
+  scale_x_continuous(breaks = seq(from = 1, to = 15, by = 2)) +
+  facet_wrap(~section, nrow = 2) +
+  ylab("Total length of pre-lab \n videos (minutes)") +
+  xlab("Week of semester") +
+  theme(
+    legend.position = "none"
+  )
+```
+
+```{r}
+youtube_fortesting <- youtube_weeks %>%
+  select(week, section, tot_min) %>%
+  pivot_wider(week, names_from = section, values_from = tot_min) %>%
+  mutate(diff = tidyverse - formula, 
+         avglength = (tidyverse + formula)/2, 
+         perc_diff = abs(tidyverse - formula)/avglength)
+
+ytboot <- youtube_fortesting %>%
+  specify(response = diff) %>%
+  generate(reps = 5000, type = "bootstrap") %>%
+  calculate(stat = "mean") %>%
+  get_ci()
+detach("package:infer")
+```
+
+Then the question becomes if the longer lengths of documents lent themselves to longer pre-lab videos. Figure \ref{fig:videolength} shows the video lengths, which appear more consistent between sections. Effort was made to ensure the maximum video length was approximately 20 minutes, and some weeks had multiple videos. 
+
+Again, we can compute a pairwise difference in total video length (adding together multiple videos in weeks that had them), and compute the mean of that difference. That difference is `r round(mean(youtube_fortesting$diff))` minutes (`tidyverse` videos being longer). We can then compute a 95\% bootstrap confidence interval for the difference, (`r round(ytboot$lower_ci, digits=2)`, `r round(ytboot$upper_ci)`). Again, it appears `tidyverse videos are longer, although just by a few minutes. 
+
+### Divergent labs {#sec:diflabs}
+
+One place where the labs are of particularly different lengths is in week 3, when the topic was exploratory data analysis for one and two categorical variables. For the formula section the RMarkdown document was `r pull(filter(lablines, week == 3, section == "formula"), lines)` lines long, and the two videos totaled `r round(filter(youtube_weeks, week == 3, section == "formula") %>% pull(tot_min))` minutes. The RMarkdown document for the `tidyverse` section was `r pull(filter(lablines, week == 3, section == "tidyverse"), lines)` lines long, and the videos totaled `r round(filter(youtube_weeks, week == 3, section == "tidyverse") %>% pull(tot_min))` minutes. There is a clear reason why. 
+
+```{r}
+library(palmerpenguins)
+data(penguins)
+```
+
+In the formula section, students found frequency tables and relative frequency tables with code as in \ref{tally-ex1} and \ref{tally-ex2}.
+
+```{r}
+library(mosaic)
+```
+
+```{r tally-ex1, ref = "tally-ex1", codecap = "Making tables of one and two categorical variables using the formula syntax and mosaic::tally().", echo = TRUE, eval = FALSE}
+tally(~island, data = penguins)
+tally(~island, data = penguins, format = "percent")
+tally(species ~ island, data = penguins)
+```
+
+```{r tally-ex2, ref = "tally-ex2", codecap = "Making a table of two categorical variables using the formula syntax and mosaic::tally() function, almong with the percent option.", echo = TRUE}
+tally(species ~ island, data = penguins, format = "percent")
+```
+
+The `mosaic::tally()` function produces a familiar-looking two-way table, which took very little explanation, other than to show how reversing the variables in the formula led to different percentages, as is seen in \ref{tally-ex3}. Compare \ref{tally-ex2} and \ref{tally-ex3} to see the effect of swapping the order of variables.  
+
+```{r tally-ex3, ref = "tally-ex3", codecap = "Making a table of two categorical variables using the formula syntax and mosaic::tally() function, with variables swapped.", echo = TRUE}
+tally(island ~ species, data = penguins, format = "percent")
+```
+
+```{r}
+detach(package:mosaic)
+```
+
+However, in the `tidyverse` section, both the code and output took longer to explain. Initial summary statistics for categorical variables are computed in \ref{tidy-tally1}, while the tidy version of a relative frequency table is shown in \ref{tidy-tally2}.  
+
+```{r tidy-tally1, ref = "tidy-tally1", codecap = "Computing summary statistics for one and two categorical variables in the tidyverse syntax.",  echo = TRUE, eval = FALSE}
+penguins %>%
+  group_by(island) %>%
+  summarize(n = n())
+
+penguins %>%
+  group_by(island) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n))
+
+penguins %>%
+  group_by(island, species) %>%
+  summarize(n = n())
+```
+
+```{r tidy-tally2, ref = "tidy-tally2", codecap = "Computing summary statistics for two categorical variables in the tidyverse syntax.", echo = TRUE}
+penguins %>%
+  group_by(island, species) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n))
+```
+
+Again, reversing the order of the variables (this time, inside the `dplyr::group_by()`) changed the percentages, but it was more difficult to determine how the percents added up, because the data was in long format, rather than wide format. Compare \ref{tidy-tally2} and \ref{tidy-tally3} to see the effect of swapping the order of variables. 
+
+```{r tidy-tally3, ref = "tidy-tally3", codecap = "Computing summary statistics for two categorical variables in the tidyverse syntax, with variables swapped.", echo = TRUE}
+penguins %>%
+  group_by(species, island) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n))
+```
+
+A similar discrepancy can be seen in week 10, where the formula section's RMarkdown document was `pull(filter(lablines, week == 10, section == "formula"), lines)` lines long, and the videos totaled `r round(filter(youtube_weeks, week == 10, section == "formula") %>% pull(tot_min))` minutes. That same week the `tidyverse` RMarkdown document was `pull(filter(lablines, week == 10, section == "tidyverse"), lines)` lines long, and the videos totaled `r round(filter(youtube_weeks, week == 10, section == "tidyverse") %>% pull(tot_min))` minutes. 
+
+The explanation for the varying time is similar, as well. Week 10 focused on inference for two samples; that is, inference for a difference of proportions or a difference of means. While a difference of means makes it fairly easy to know which variable should go where (the quantitative variable is the response variable to take the mean of, and the categorical variable is the explanatory variable splitting it), with a difference of two proportions the concept comes back to thinking about two-way tables. Again, the `tidyverse` presentation of a "two-way table" made this more difficult to conceptualize.
+
+In the formula section, students saw code like that in \ref{formula-prop}.
+
+```{r}
+library(mosaic)
+penguins <- penguins %>%
+  dplyr::filter(island != "Torgersen") %>%
+  mutate(island = fct_drop(island)) %>%
+  drop_na(sex, island)
+```
+
+```{r formula-prop, ref = "formula-prop", codecap = "Making a two-way table and performing inference for a difference of proportions using the formula syntax. In order for this code to run as-is, the Torgerson island has to be removed so there are just two categories in that variable.", echo=TRUE, eval = FALSE}
+tally(island ~ sex, data = penguins, format = "proportion")
+prop.test(island ~ sex, data = penguins, success = "Biscoe")
+```
+
+The code for finding the point estimate using `mosaic::tally()` is quite similar to the code for performing inference using `prop.test()`. 
+
+In the `tidyverse`, the code is not as consistent. Students in this section saw code like that shown in \ref{tidy-prop}.
+
+```{r}
+detach(package:mosaic)
+library(infer)
+```
+
+```{r tidy-prop, ref= "tidy-prop", codecap = "Making a `two-way table' and performing inference for a difference of proportions using the tidyverse syntax. Again, the Torgerson island data has been removed beforehand.", echo = TRUE, eval = FALSE}
+penguins %>%
+  group_by(sex, island) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n))
+
+penguins %>%
+  prop_test(
+    response = island,
+    explanatory = sex,
+    alternative = "two-sided",
+    order = c("female", "male")
+  )
+```
+
+In `tidyverse` syntax the code for finding the point estimate (`dplyr`'s `group_by()`, `summarize()` and then `mutate()`) is quite different from the code performing the inference (the `infer::prop_test()` function). And, the output from the inferential `prop_test()` function makes it harder to determine the code was correct. In the `prop.test()` output, sample estimates are provided, which allows you to check your work against a point estimate computed earlier. 
+
+These discrepancies made it take longer to explain code in the `tidyverse` section. Comparisons of RMarkdown document length and YouTube video length, as well as the corresponding reasons for those discrepancies are the first hint of the computing time results to come in Section \ref{sec:rstudio}. 
+
+
+## Number of functions {#sec:numfunc}
+
+```{r}
+tidycs <- csfunctions %>%
+   filter(section == "tidyverse")
+formulacs <- csfunctions %>%
+  filter(section == "formula")
+bothcs <- formulacs %>%
+  inner_join(tidycs, by = "text")
+```
+
+```{r}
+tidyfunctions <- allfunctions %>%
+  filter(section == "tidyverse")
+formulafunctions <- allfunctions %>%
+  filter(section == "formula")
+bothfunctions <- formulafunctions %>%
+  inner_join(tidyfunctions, by = "text")
+```
+
+Since both sections relied on the use of RMarkdown documents, there is a wealth of text data to be explored. The instructor prepared the pre-lab documents with blanks, but also saved a 'filled-in' copy after recording the accompanying video. She also completed each lab assignment in an RMarkdown document to generate a key. 
+
+Students in each section were also given a "All the R you need for intro stats" cheatsheet at the beginning of the semester. These cheatsheets (one for formula and one for `tidyverse`) were modeled on the cheatsheet of a similar name accompanying the `mosaic` package [@pruimetal2017]. The cheatsheets aimed to include all code necessary for the entire semester, but were generated a priori. 
+
+These varied documents allow us to use automated methods to analyze the number of unique functions shown in each section, using the `getParseData()` function from the built-in `utils` package. 
+
+The cheatsheets given to students at the beginning of the semester contained `r nrow(formulacs)` functions for the formula section and `r nrow(tidycs)` functions for the `tidyverse` section. There was an overlap of `r nrow(bothcs)` functions between the two cheatsheets. 
+
+Of course, while teaching a real class, an instructor often has to ad-lib at least a little. So, it is also interesting to consider the number of functions actually shown throughout the course of the semester. To do this, we can consider the functions shown in the filled-in version of pre-lab documents the instructor ended up with after recording the associated instructional video. 
+
+Considering this data, the formula section saw a total of `r nrow(formulafunctions)` functions and the `tidyverse` section saw `r nrow(tidyfunctions)`, again with an overlap of `r nrow(bothfunctions)` functions between the two sections. These numbers make it appear as if in the formula section the instructor showed all functions from the cheatsheet, and then a few additional functions. However, there were actually several functions in the cheatsheet that were never shown in the actual class, and many more functions that appeared in the class that did not make it onto the cheatsheet. For a list of the functions used in both sections, see Appendix \ref{sec:functions}. 
+
+```{r}
+f_oncs_notinclass <- formulacs %>%
+   anti_join(formulafunctions, by = "text")
+
+f_inclass_notoncs <- formulafunctions %>%
+  anti_join(formulacs, by = "text")
+
+t_oncs_notinclass <- tidycs %>%
+  anti_join(tidyfunctions, by = "text")
+
+t_inclass_notoncs <- tidyfunctions %>%
+  anti_join(tidycs, by = "text")
+```
+
+In the `tidyverse` section, there were `r nrow(t_inclass_notoncs)` functions shown in class that did not appear on the cheatsheet, and only `r nrow(t_oncs_notinclass)` function on the cheatsheet that was not discussed in class. In the formula section, however, there were `r nrow(f_inclass_notoncs)` functions shown in class that did not appear on the cheatsheet, as well as `r nrow(f_oncs_notinclass)` functions on the cheatsheet that were not discussed in class. In both classes the majority of functions shown in class were on the cheatsheet. 
+
+Interestingly, there was quite a bit of overlap in the functions students saw in both sections. Considering functions actually used in class, the two sections had `r nrow(bothfunctions)` functions in common. 
+
+The functions both sections of students saw included helper functions like `library()`, `set.seed()`, and `set()` (a function in the knitr options included in the top of each RMarkdown document), statistics like `mean()`, `sd()`, and `cor()`, and modeling-related functions like `aov()`, `lm()`, `summary()` and `predict()`. 
+
+```{r}
+tidyfunctions <- tidyfunctions %>%
+  anti_join(bothfunctions, by = "text")
+formulafunctions <- formulafunctions %>%
+  anti_join(bothfunctions, by = "text")
+```
+
+Students in the formula section saw `r nrow(formulafunctions)` functions unique from the set both sections saw, while the `tidyverse` section saw `r nrow(tidyfunctions)` unique functions. It makes sense the number of unique functions in the `tidyverse` section would be slightly larger. One reason is the `ggplot2` helper functions `ggplot()` and `aes()`. 
+
+Students in both sections saw how to make a barchart, boxplot, histogram, and scatterplot, but in the formula section they used standalone functions like `gf_boxplot()` whereas in the `tidyverse` section they needed to start with `ggplot` and add on a `geom_` function like `geom_boxplot()`, while specifying the `aes`thetic values somewhere.
+
+Similarly, both sections saw several common summary statistics, but in the formula section they used the function (e.g. `mean()`) on its own, whereas in the `tidyverse` section summary functions needed to be wrapped within `summarize()`. Students in the `tidyverse` section also saw slightly more summary statistic functions, because one lab called for the five number summary.
+
+In the formula lab, students found the five number summary as shown in \ref{favstats}. 
+
+```{r}
+library(mosaic)
+```
+
+```{r favstats, ref= "favstats", codecap = "The mosaic::favstats() function provides many common summary statistics for one quantitative variable. The favstats() function automatically drops missing values.",  echo = TRUE, eval = FALSE}
+favstats(~bill_length_mm, data = penguins)
+```
+
+```{r}
+detach(package:mosaic)
+```
+
+This approach is particularly attractive because it deals with missing values as part of the standard output. 
+
+In the `tidyverse` section, the instructor chose to show two approaches. (Probably a bad pedagogical decision.) Both approaches are in \ref{tidy-summary1}, and both needed to include `drop_na()` to deal with missing values. Past those similarities, the approaches are divergent. 
+
+```{r tidy-summary1, ref = "tidy-summary1", codecap = "Two approaches for doing summary statistics of one quantitative variable in tidyverse syntax. The first is quite verbose, the second is more compact but introduces a function never seen again.", echo = TRUE, eval = FALSE}
+penguins %>%
+  drop_na(bill_length_mm) %>%
+  summarize(
+    min = min(bill_length_mm),
+    lower_hinge = quantile(bill_length_mm, .25),
+    median = median(bill_length_mm),
+    upper_hinge = quantile(bill_length_mm, .75),
+    max = max(bill_length_mm)
+  )
+
+penguins %>%
+  drop_na(bill_length_mm) %>%
+  pull(bill_length_mm) %>%
+  fivenum()
+```
+
+The instructor should have chosen a single solution to present to students, but was faced with a dilemma. The first `tidyverse` approach is very verbose, but it follows nicely from other summary statistics students had already seen, just adding a few more functions like `min`, `max`, and `quantile`. The second solution is more concise, but it introduces the `pull` function, which was never used again in the course. 
+
+This brings up an important consideration when teaching coding-- how many times students will see the same function. Because there is some cognitive load associated with learning a new function, and repetition helps move information from working memory to long term memory, it is ideal for students to see each function at least twice [@lovettgreenhouse2000; @mcnamaraetal2021a]. When analyzing the number of functions shown in each section, we found there were `r dim(filter(allfunctions, n == 1, section == "formula"))[1]` functions shown only one time in the formula section, and `r dim(filter(allfunctions, n == 1, section == "tidyverse"))[1]` functions only shown once in the `tidyverse` section. 
+
+The practice of analyzing the number of functions shown over the course of the semester was eye-opening. It will provide valuable information for the instructor the next time she teaches the course, as she can attempt to remove functions only shown once, and ensure the cheatsheets better match what is actually shown throughout the semester. 
+
+
+## Pre- and post-survey {#sec:prepost}
+
+As discussed in \ref{sec:participants}, the number of students who completed both the pre- and post-surveys were low, so there is limited generalizability of the paired analysis. 
+
+The majority of the survey was modeled on a pre- and post-survey used by the Carpentries, a global nonprofit teaching coding skills [@thecarpentries2021]. Questions ask respondents to use a 5-step Likert scale, from 1 (strongly disagree) to 5 (strongly agree) to rate their agreement with the following statements: 
+
+\begin{itemize}
+\itemsep-3mm
+```{r, results = 'asis'}
+qs %>%
+  select(Q11.x:Q16.y) %>%
+  pivot_longer(cols = everything(), names_to = "old", values_to = "q") %>%
+  select(-old) %>%
+  mutate(q = paste("\\item", q, "\n")) %>%
+  pull(q) %>%
+  walk(cat)
+```
+\end{itemize}
+
+In Figure \ref{fig:pre-post}, you can see a visualization of these Likert-scale questions, split by section. 
+
+```{r}
+pre_sum <- prepostsurvey %>%
+  select(Section.x, Q11.x:Q16.x) %>%
+  pivot_longer(-Section.x,
+    names_to = "skill",
+    values_to = "feeling"
+  )
+pre_sum <- pre_sum %>%
+  drop_na(feeling) %>%
+  group_by(Section.x, skill, feeling) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n)) %>%
+  select(-n) %>%
+  mutate(type = "pre") %>%
+  rename(Section = Section.x)
+
+post_sum <- prepostsurvey %>%
+  select(Section.y, Q11.y:Q16.y) %>%
+  pivot_longer(-Section.y,
+    names_to = "skill",
+    values_to = "feeling"
+  )
+post_sum <- post_sum %>%
+  drop_na(feeling) %>%
+  group_by(Section.y, skill, feeling) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n)) %>%
+  select(-n) %>%
+  mutate(type = "post") %>%
+  rename(Section = Section.y)
+
+prepost_sum <- pre_sum %>%
+  bind_rows(post_sum) %>%
+  mutate(type = as_factor(type)) %>%
+  mutate(type = fct_relevel(type, "post", "pre")) %>%
+  mutate(skill = str_remove_all(skill, ".[xy]"))%>%
+  mutate(skill = as_factor(skill)) %>%
+  mutate(skill = fct_rev(fct_relevel(skill, "Q12", "Q13", "Q14", "Q15", "Q16", "Q11"))) %>%
+  mutate(skill = fct_recode(skill,
+    "Programming Efficient" = "Q13",
+    "Raw Data" = "Q12",
+    "Analyses Easier" = "Q15",
+    "Search Online" = "Q16",
+    "Overcome Problem" = "Q14",
+    "Programming Confident" = "Q11"
+  ))
+
+prepost_pos <- prepost_sum %>%
+  filter(feeling %in% c("4", "5 - strongly agree"))
+
+prepost_neg <- prepost_sum %>%
+  filter(feeling %in% c("1 - strongly disagree", "2"))
+
+prepost_neu <- prepost_sum %>%
+  filter(feeling == "3 - neutral") %>%
+  mutate(prop = prop / 2)
+
+prepost_pos <- prepost_pos %>%
+  bind_rows(prepost_neu) %>%
+  mutate(feeling = as_factor(feeling)) %>%
+  mutate(feeling = fct_expand(feeling, "1 - strongly disagree", "2", "3 - neutral", "4", "5 - strongly agree")) %>%
+  mutate(feeling = fct_relevel(feeling, "5 - strongly agree", "4", "3 - neutral", "2", "1 - strongly disagree"))
+
+prepost_neg <- prepost_neg %>%
+  bind_rows(prepost_neu) %>%
+  mutate(prop = -prop) %>%
+  mutate(feeling = as_factor(feeling)) %>%
+  mutate(feeling = fct_expand(feeling, "1 - strongly disagree", "2", "3 - neutral", "4", "5 - strongly agree")) %>%
+  mutate(feeling = fct_relevel(feeling, "1 - strongly disagree", "2", "3 - neutral", "4", "5 - strongly agree"))
+```
+
+```{r pre-post, fig.cap = "Pre and post responses to Likert-scale questions. Most questions show some level of improvement, such as the first question, `I am confident in my ability to make use of programming software to work with data.' but others show no change or even a decline in agreement.", out.width = "95%", fig.asp = 0.618}
+likert_palette <- c("1 - strongly disagree" = "#a6611a", "2" = "#dfc27d", "3 - neutral" = "grey90", "4" = "#80cdc1", "5 - strongly agree" = "#018571")
+ggplot(prepost_pos, aes(x = type, y = prop, fill = feeling)) +
+  geom_col() +
+  geom_col(data = prepost_neg) +
+  coord_flip() +
+  theme_bw() +
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "bottom",
+    legend.title = element_blank(),
+    text = element_text(size = 15),
+    strip.text.y = element_text(angle = 0)
+  ) +
+  xlab("") +
+  ylab("Percentage") +
+  scale_y_continuous(limits = c(-1, 1), breaks = seq(from = -1, to = 1, by = 0.5), labels = c(100, 50, 0, 50, 100)) +
+  scale_fill_manual(values = likert_palette) +
+  facet_grid(skill ~ Section, labeller = label_wrap_gen(width=10))
+```
+
+It is difficult to gather much of a conclusion from this figure. Many categories appear to have made an improvement, while others seem to show a decrease in agreement from the pre- to the post-survey. Additionally, the figure shows overall trends in the sections, and does not utilize the potential for matching pre- and post-responses from the same student to measure change at the individual level. 
+
+To consider this individual-level change, we can compute the difference between a student's response on the pre- and post-survey. We compute $\text{post score} - \text{pre score}$ such that positive differences mean the student's attitude on the item improved from the beginning of the class to the end, and negative differences mean they worsened. 
+
+```{r}
+pre_paired <- prepostsurvey %>%
+  select(Section.x, Q11.x:Q16.x, Section.y, Q11.y:Q16.y) %>%
+  drop_na() %>%
+  mutate(across(contains("Q"), parse_number)) %>%
+  mutate(Q11 = Q11.y - Q11.x,
+         Q12 = Q12.y - Q12.x,
+         Q13 = Q13.y - Q13.x,
+         Q14 = Q14.y - Q14.x,
+         Q15 = Q15.y - Q15.x,
+         Q16 = Q16.y - Q16.x) %>%
+  rename(Section = Section.x) %>%
+  select(Section, Q11:Q16) %>%
+  pivot_longer(-Section, names_to = "skill", values_to = "diff")
+
+
+prepost_joined <- pre_paired %>%
+  mutate(skill = fct_recode(skill,
+    "Programming Efficient" = "Q13",
+    "Raw Data" = "Q12",
+    "Analyses Easier" = "Q15",
+    "Search Online" = "Q16",
+    "Overcome Problem" = "Q14",
+    "Programming Confident" = "Q11"
+  ))
+```
+
+Because the questions were on Likert scales, it is not appropriate to compute an arithmetic mean of the differences, but median scores can be computed. To provide a broader picture of the distribution of responses, we also compute the 25th and 75th percentiles for each section and score. This information is most easily displayed as a boxplot. The boxplots in question can be seen in Figure \ref{fig:prepost}. 
+
+Because the sample sizes are so small, we will not attempt to use inferential statistics, but it is worth noting almost all boxes are centered at 0 (meaning the median response did not change over the course of the semester). 
+
+The one question that is an exception to this rule is "I am confident in my ability to make use of programming software to work with data." The boxes for both sections are centered at a median of 1, meaning the median student answered one level up on the question at the end of the course. Both boxes (the middle 50% of the data) are fully positive, although the lower whisker (minimum value) for both includes zero. 
+
+```{r prepost, fig.cap="Distribution of paired differences for student responses to questions. A score of 0 means the student responded the same way in the pre- and post-surveys, whereas a negative score means their agreement was lower at the end of the course, and a positive score means their agreement was higher. The boxes cross 0 for all except those for `I am confident in my ability to make use of programming software to work with data', and boxes appear similar between sections."}
+prepost_joined %>%
+  group_by(Section, skill) %>%
+  ggplot(aes(x = fct_rev(skill), y = diff)) +
+  # geom_jitter(width = 0.05, alpha =0.8) +
+  geom_boxplot() +
+  ylab("Difference in Likert rating between \n pre- and post-surveys") +
+  xlab("") +
+  facet_wrap(~Section) +
+  scale_x_discrete(position = "top") +
+  coord_flip()
+  
+```
+
+It is somewhat heartening to know students improved their confidence in programming over the course of the semester, but there is no clear difference between the sections, so this does not provide any strong evidence for one syntax or the other.
+
+Likely, the questions used by The Carpentries was inappropriate for this setting, and a different set of survey questions would have been more appropriate for this group. For example, this class did not include any explicit instruction on searching for answers online. This was an intentional choice, because novices typically struggle to identify which search results are relevant to their queries and get overwhelmed by the multitude of syntactic options they run across. Instead, students with questions were referred to the "all the R you need" cheatsheet they had been given at the beginning of the semester, which attempted to summarize every function they would encounter. Likely, students still attempted to Google questions, which may be why the responses to this question got more negative over the course of the semester. 
+
+In addition to the six questions asked on both the pre- and post-survey, the two surveys also had some unique questions. 
+
+The pre-survey also asked students to share what they were most looking forward to, and most nervous about. Both sections had similar responses. Students wrote they looked forward to "learning how to code!" and "Gaining a better understanding of how to analyze data." Beyond worries related to the pandemic, they expressed apprehension about "getting stuck," "using R," and "Figuring out how to do the programming and typing everything out." 
+
+On the post survey, students were asked to report which syntax they had learned, with an option to respond "I don't know." All students in both sections correctly identified the syntax associated with their lab. Then, they were asked if they would have preferred to learn the other syntax. We hypothesized many students would say 'yes,' thinking the other syntax would have been easier or lack some feature they found frustrating. Surprisingly, though, the majority of students in both sections said 'no,' they preferred to learn the syntax they had been shown. Responses to this question are shown in Table \ref{tab:preferother}. 
+
+
+```{r preferother, results = 'asis'} 
+prepostsurvey %>%
+  drop_na(Q19.y) %>%
+  filter(Q19.y != "Click to write Choice 3") %>%
+  group_by(Section.y, Q19.y) %>%
+  summarize(n = n()) %>%
+  mutate(prop = round(n / sum(n), digits = 2)) %>%
+  kable(col.names = c("Section", "Answer", "n", "Proportion"), caption = "Responses to the question, `Would you have preferred to learn the other syntax?'",  booktabs = TRUE)
+```
+
+However, part of the explanation is likely that the students did not know what the other syntax looked like. Throughout the semester, the instructor was careful to only expose students to the syntax for the particular section. Several students asked to see the alternate syntax during office hours, but this was the exception and not the norm. 
+
+An optional follow-up question asked students why they had responded the way they did. Responses to this question are shown in Table \ref{tab:whyprefer}. Several students suggested a cross-over design for the experiment would have allowed them to better compare, which is both a good direction for further work (and a possible indication the students were listening during the chapter on experimental design). 
+
+```{r whyprefer}
+prepostsurvey %>%
+  drop_na(Q22) %>%
+  arrange(Section.y) %>%
+  select(Section.y, Q22) %>%
+  kable(col.names = c("Section", "Response"), caption = "Reasons stated by students for their preference of which syntax to learn.",  booktabs = TRUE) %>%
+  column_spec(2, width = "6in")
+```
+
+Another question on the post-survey asked students "How was the experience of learning to program in R?" Overall, students seem to have positive sentiment toward learning R, whether in the formula or the `tidyverse` section. As seen in Figure \ref{fig:post-sentiment}, most students said either the experience was "not what I expected -- in a good way" or "About what I expected -- in a good way." 
+
+
+```{r post-sentiment, fig.cap = "Responses to the question, ``How was the experience of learning to program in R?''"}
+prepostsurvey %>%
+  mutate(Q23 = as_factor(Q23)) %>%
+  mutate(Q23 = fct_relevel(Q23, "About what I expected -- in a good way", "Not what I expected -- in a good way", "About what I expected -- in a bad way", "Not what I expected -- in a bad way")) %>%
+  mutate(Q23 = fct_recode(Q23, "About what I expected -- \n in a good way" = "About what I expected -- in a good way", "Not what I expected -- \n in a good way" = "Not what I expected -- in a good way", "About what I expected -- \n in a bad way" = "About what I expected -- in a bad way", "Not what I expected -- \n in a bad way" = "Not what I expected -- in a bad way")) %>%
+  drop_na(Q23) %>%
+  rename(Section = Section.y) %>%
+  group_by(Section, Q23) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n)) %>%
+  ggplot() +
+  geom_col(aes(x = Q23, y = prop)) +
+  scale_y_continuous(labels = scales::percent_format()) +
+  scale_x_discrete() +
+  facet_wrap(~Section) +
+  ylab("") +
+  xlab("") +
+  coord_flip() +
+  theme(plot.title = element_text(hjust = 1), aspect.ratio = 2/3,
+        axis.text.y=element_text(hjust=0)) +
+  ggtitle("How was the experience of learning to program in R?") 
+```
+
+Nothing from the survey responses seem to indicate a difference between the two sections. While the pre- and post-survey results do not suggest interesting results, the incidental data from YouTube and RStudio Cloud provided some insights.  
+
+## YouTube analytics {#sec:yt}
+
+Because of the format of the class, which was flipped such that students watched videos of pre-recorded content, we can study overall patterns of YouTube watch time. YouTube offers a data portal which allows for date targeting. We defined each week of the semester as running from Sunday to Saturday, which covered the time when videos were released through to the time finished labs needed to be submitted (Fridays at 11:59 pm). For each week, we downloaded YouTube analytics data for the channel, and filtered the data to focus only on the videos related to the introductory statistics labs. 
+
+Analytics data includes number of watches for each video, number of unique viewers, and total watch time. We joined this data with data recording the length of the relevant videos, which allowed us to calculate the approximate proportion of the videos watched by each student.
+
+Data from YouTube is aggregated, and since videos were posted publicly, could contain viewers who were not enrolled in the class. However, when we checked view counts of lab videos on subsequent weeks (e.g., looking at views for the "describing data" lab in weeks 3-15) there were rarely more than two views accumulated per section per week. While the public nature of the videos means we do need to view these results with a level of skepticism, we can be reasonably sure the majority of viewers were students. Studying the data displays some interesting trends. 
+
+First, we can look at the number of unique watchers per video, seen in Figure \ref{fig:youtube-num-uniques}. Interestingly, at the start of the semester there are more unique viewers than enrolled students in the class, but as time goes on, the number of unique viewers levels out at slightly less than the number of enrolled students ($n=21$ for both sections). The lower numbers later on make sense because some students were likely unengaged, or found it possible to do their lab work without watching the video. However, the high numbers at the start of the semester are puzzling. Perhaps students were viewing the videos from a variety of devices (phone, laptop, computer at school, etc) when the semester began. 
+
+```{r youtube-num-uniques, fig.cap = "Average number of unique viewers per video. Horizontal line represents the 21 students enrolled in each of the sections, a baseline for comparison."}
+youtube_weeks %>%
+  ggplot() +
+  geom_hline(yintercept = 21) +
+  geom_col(aes(x = week, y = uniques, fill = section), position = "dodge") +
+  ylab("Number of unique viewers") +
+  xlab("") +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+```{r}
+library(infer)
+youtube_fortesting2 <- youtube_weeks %>%
+  select(week, section, percent_per_student) %>%
+  pivot_wider(week, names_from = section, values_from = percent_per_student) %>%
+  mutate(diff = formula - tidyverse)
+
+ytboot2 <- youtube_fortesting2 %>%
+  specify(response = diff) %>%
+  generate(reps = 5000, type = "bootstrap") %>%
+  calculate(stat = "mean") %>%
+  get_ci()
+detach("package:infer")
+```
+
+If we assume all viewers were actually students (some students being counted as separate viewers because of different devices or cookie settings), we can find an approximate proportion of video content watched, per student. This is shown in Figure \ref{fig:youtube-percent-student}. It appears the proportion of video content watched is larger for the formula videos than for the `tidyverse` videos. This can be confirmed by a 95\% bootstrap interval, which suggests the formula section watched between `r round(ytboot2$lower_ci)` and `r round(ytboot2$upper_ci)` percentage points more of the videos each week. 
+
+```{r youtube-percent-student, fig.cap="Estimated proportion of YouTube video content watched, per student. This data came from dividing the total amount of time watched by the number of students in each section and the total length of the video(s) for the section that week."}
+youtube_weeks %>%
+  ggplot() +
+  geom_col(aes(x = week, y = percent_per_student, fill = section), position = "dodge") +
+  ylab("Approximate proportion of video content watched, per student") +
+  xlab("Week of semester") +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank()
+  )
+```
+
+The discrepancy in watch proportions could be explained by the fact that videos for the `tidyverse` section tended to be longer, as discussed in Section \ref{sec:ll}. Prior research has shown shorter videos are better for flipped classroom settings, so perhaps the videos for the `tidyverse` section were just too long. Literature about flipped classrooms suggests  shorter videos are better, although there is no consensus about the ideal length for videos, with suggestions ranging from 5 to 20 minutes as a maximum length for a video [@zuber2016; @beattyetal2019; @guoetal2014]. Most weeks the total number of minutes of video content was below 20, and almost every week had video content split into multiple shorter videos. 
+
+No matter the explanation, this trend is particularly interesting when considered in conjunction with the RStudio Cloud usage patterns in the following section. 
+
+## RStudio Cloud usage {#sec:rstudio}
+
+The other source of unexpected data came from RStudio Cloud usage logs. RStudio Cloud provides summary data per user in a project, aggregated by calendar month. This data includes all students enrolled in the class. 
+
+```{r rstudio-hours, fig.cap="Hours of compute time per student over the course of the semester."}
+rstudio_cloud <- rstudio_cloud %>%
+  mutate(month = as_factor(month))%>%
+  mutate(month_num = case_when(month == "September" ~ 0, 
+                               month == "October" ~ 1, 
+                               month == "November" ~ 2,
+                               month == "December" ~ 3))
+# ggplot(rstudio_cloud) +
+#   geom_boxplot(aes(y = amount, x = section)) +
+#   facet_grid(~ rev(month)) +
+#   ylab("Hours of compute time on RStudio Cloud") +
+#   xlab("") +
+#   theme(
+#     legend.position = "bottom",
+#     legend.title = element_blank()
+#   )
+
+ggplot(rstudio_cloud, aes(y=amount, x = month_num, group = ID)) +
+  geom_point(alpha = 0.5) + 
+  geom_line(alpha = 0.15) +
+  facet_wrap(~section, nrow = 2)  +
+  scale_x_continuous(breaks = 0:3, labels = c("September", "October", "November", "December")) +
+  xlab("") +
+  ylab("Hours of compute time on RStudio Cloud") 
+```
+
+```{r, eval = FALSE}
+rstudio_cloud %>%
+  group_by(section, month) %>%
+  count()
+```
+
+
+Since the instructor set up separate projects for each section, it is easy to compare data between sections. In Figure \ref{fig:rstudio-hours} we can see the amount of compute time used by each student in each section. Lines connect data from a particular student, to allow the reader to trace over time. For a monthly overview, see Figure \ref{fig:rstudio-month}.
+
+```{r rstudio-month, fig.cap="Hours of compute time on RStudio Cloud, per month of the semester. Students in the tidyverse section appear to be spending more time on RStudio Cloud, particularly in the months of October and December."}
+ggplot(rstudio_cloud) +
+  geom_density(aes(x = amount, color = section), show.legend = FALSE) +
+  stat_density(aes(x = amount, color = section),
+    geom = "line", position = "identity", size = 0
+  ) +
+  guides(colour = guide_legend(override.aes = list(size = 1))) +
+facet_wrap(~month, drop = FALSE) +
+  ylab("") +
+  xlab("Hours of compute time on RStudio Cloud") +
+  theme(
+    legend.position = "bottom",
+    legend.title = element_blank(),
+  axis.text.y = element_blank(),
+  axis.ticks.y = element_blank()
+  )
+```
+
+Note that the month of November is missing for the `tidyverse` section because of an oversight on the part of the author. 
+
+While the `tidyverse` section seemed to watch less of the provided videos each week (as discussed in Section \ref{sec:yt}), they appear to spend more time on RStudio Cloud per month. 
+
+All the distributions are right-skewed, with several students spending many more hours of compute time than the majority. It is also important to note these numbers are likely inflated based on the way RStudio Cloud counts usage time. The spaces for both sections were allocated 1 GB of RAM and 1 CPU, so one hour of clock time on the space counted as one project hour (spaces with more RAM or CPU may consume more than one project hour per clock hour), but student usage often includes a fair amount of idle time. RStudio Cloud will put a project to sleep after 15 minutes without interaction, and based on observation of student habits it is likely almost every session ends with a 15 minute idle time before the project sleeps. In a month with four labs, this can add up to at least an hour of project time that does not correspond to students actually using R.
+
+```{r}
+overallmean <- rstudio_cloud %>%
+  group_by(section) %>%
+  summarize(mean=round(mean(amount), digits = 1)) %>%
+  pivot_wider(names_from = section, values_from = mean)
+```
+
+
+Nevertheless, because the numbers would be inflated in the same way in both sections, we can persist in comparing them.  Using data over the entire semester, students in the `tidyverse` section had an mean number of compute hours per month of `r pull(overallmean, tidyverse)` and students in the formula section had a mean of `r pull(overallmean, formula)` hours. 
+
+We can also study these numbers per month, as seen in Table \ref{tab:meancompute}. The mean compute time for both sections increases from September to October, likely because of the increased number of labs that month (two labs were due in September, five in October). Compute time then drops down again for the formula section, and continues downward. November data is missing for the `tidyverse` section, but time also appears to decrease in this section as months progress, although not to the same degree as in the formula section.  
+
+```{r meancompute, results='asis'}
+options(knitr.kable.NA = "missing")
+rstudio_cloud %>%
+  group_by(section, month) %>%
+  summarize(mean = round(median(amount), digits = 1), 
+            sd = round(sd(amount), digits = 1)) %>%
+  mutate(info = paste0(mean, " (", sd, ")")) %>%
+  select(section, info, month) %>%
+  pivot_wider(names_from = month, values_from = info) %>%
+  kable(caption = "Mean student compute time on RStudio Cloud per month in hours (standard deviation in parentheses), broken down by section. Note different months had different numbers of assignments, although the number of assignments was consistent between sections", booktabs = TRUE)
+options(knitr.kable.NA = NA)
+```
+
+
+Whereas in the pre- and post-surveys we have quite small sample sizes, the RStudio Cloud data includes all students enrolled in the class. This means we perhaps have a large enough sample to perform inferential statistics. 
+
+Data was collected at the student level over time, so it is necessary to use a mixed effects model to account for clustering within students. We also need to take into account the longitudinal nature of the data, so we included month as a predictor. We use the `lme4` package to fit the linear mixed effect models [@batesetal2015]. 
+
+```{r}
+model.a <- lmer(amount ~ 1 + (1| ID), REML = TRUE, data = rstudio_cloud)
+
+modelsuma <- summary(model.a)
+```
+
+```{r, eval = FALSE}
+17.55/(17.55+40.58)
+```
+
+Initially, we fit an unconditional means model, to determine how much variability in compute time was due to differences between students, without considering differences over time or between section. Based on the intraclass correlation coefficient, we can conclude 30\% of the total variation in compute time is attributable to differences between students. 
+
+After iterating through several candidate models, we arrived at a final model which predicts compute time per month (in hours) using section and month as fixed effect predictors, as well as an interaction effect between section and month. Student identifier was used as a random effect. This final model has the lowest AIC and BIC values of all candidate models. Results from the model can be seen in Table \ref{tab:lmenum}. 
+
+```{r lmenum, echo = FALSE, results = 'asis'}
+model.d <- lmer(amount ~ section + month + section:month + (1| ID),
+                REML = TRUE, data = rstudio_cloud)
+
+modelsum <- summary(model.d)
+tidy(model.d) %>%
+  kable(caption = "Linear mixed-effects, using month as a categorical variable.", booktabs = TRUE, linesep = "")
+```
+
+The predicted values for each section/month combination match the means computed in Table \ref{tab:meancompute}. 
+
+The `lme4` package does not provide p-values for model coefficients, but it does provide a method for confidence intervals. The confidence intervals for each of the coefficients are shown in Table \ref{tab:confints}. 
+
+```{r confints, echo = FALSE, results = 'asis', cache = TRUE}
+confint(model.d) %>%
+  kable(caption = "Confidence intervals for coefficient estimates.", booktabs = TRUE, linesep = "")
+```
+
+The confidence interval on the `sectiontidyverse` coefficient crosses zero, which suggests the difference in number of hours of compute time between the sections in September was not statistically significant. The confidence interval on `monthOctober` does not cross zero, suggesting students in the formula section spent longer on RStudio Cloud that month compared to September. But, the intervals for the formula section in November and December cross zero, which means the number of compute hours is not significantly different from the number of hours in September for that section. For the `tidyverse` section it is a little harder to assess. The intervals for the `sectiontidyverse:monthOctober` and `sectiontidyverse:monthDecember` intervals do not cross zero, but if combined with the intervals on `monthOctober` and `monthDecember`, they would. 
+
+
+As a model assessment strategy, we can use a likelihood ratio test to compare the unconditional means model with our more complex model. A drop-in-deviance test suggests the more complex model significantly outperforms the unconditional means model. 
+
+```{r, eval = FALSE}
+anova(model.a, model.d, test = "Chisq") %>%
+  tidy() %>%
+  kable(caption = "Drop-in-deviance test comparing the unconditional means model to more complex model. The more complex model significantly outperforms the unconditional means model.", booktabs = TRUE, linesep = "")
+```
+
+Based on the significance of the drop-in-deviance test, and the number of confidence intervals in the model that did not cross zero, it seems both month and section have some predictive power for the number of compute hours students used on RStudio Cloud. 
+
+It appears students in the `tidyverse` section spent more time on RStudio Cloud. We can concoct several different scenarios to explain this difference. In one, students in the `tidyverse` section were more engaged with their work, so spent more time playing with code in R. In another, students in the `tidyverse` section struggled to complete their work, so spent more time in R trying to get their lab material to work. Because the usage data was collected incidentally after the fact, we have no information about which story is closer to the truth. A follow-up study might conduct semi-structured interviews with students after the completion of the class, to determine more about student experiences and work patterns. 
+
+It would also be interesting to know if students who spent more time on RStudio Cloud received higher or lower grades on their assignments, but as discussed in Section \ref{sec:assessment}, the IRB for this study did not cover graded student work in that way. We do know the two sections did not have an overall difference in mean grade. 
+
+Since these results are from a pilot study, they should not be used without caveats. However, they do indicate that if instructors are worried about the amount of time assignments take to complete, they may want to consider using the formula syntax rather than the `tidyverse` syntax. 
+
+Another follow-up study that would be interesting to complete would look at student success in subsequent courses. Because `tidyverse` syntax is frequently used for higher-level courses, students who were in the `tidyverse` section may have an easier time in those later courses. However, many students in this study will not go on to take further statistics courses. So the takeaways about syntax choice may vary depending on the student population to which they will be applied. 
+
+
+# Discussion {#sec:discussion}
+
+This pilot study provides a semester-long comparison of two sections of introductory statistics labs using two popular R coding styles, the formula syntax and the `tidyverse` syntax. Pre- and post-survey analysis showed limited differences between the two sections, but analysis of other incidental data, including pre-lab document lengths and YouTube and RStudio Cloud data presented interesting distinctions. 
+
+Materials for the `tidyverse` section tended to be longer, both in lines of code (likely because of the convention of linebreaks after `%>%`) as well as the length of the associated YouTube videos. Students in the `tidyverse` section watched a smaller proportion of the weekly pre-lab videos than students in the formula section, but spent more time computing on RStudio. Conversely, students in the formula section were watching a larger proportion of the pre-lab videos each week, but spending less time computing each month. 
+
+These two insights are slightly contradictory-- perhaps the formula section students found the concepts more complex as they were watching the videos, but then had an easier time applying them as they worked on the real lab. 
+
+There is much more interesting further work that could be considered. As students suggested, a cross-over design where students saw one syntax for the first half of the semester and the other for the second half would allow for better comparisons. However, there are a few caveats here. 
+
+First, anecdotal evidence from many instructors suggests it is best for students to see only one consistent syntax over the course of the semester. The other challenge is the formula syntax tends to seep (albeit only minorly) into the `tidyverse` section. For example, when doing linear regression both sections saw the `lm(y~x, data = data)` formula syntax. If a cross-over design used the existing materials from this study, just swapping the final few weeks, students in the formula section would likely see more that was familiar to them than students in the `tidyverse` section. 
+
+By this consideration, the `tidyverse` students almost \emph{did} have a cross-over design. This may be why the number of hours of compute time for the `tidyverse` section remained consistent from November to December (even though there were fewer instructional weeks in December) while the formula section's hours of compute time decreased. 
+
+Another interesting insight from this pilot is the number of unique functions needed to cover a semester of introductory statistics in R. The `tidyverse` section saw more unique functions, but both sections were limited to a small vocabulary of functions for the semester. 
+
+We recommend instructors follow this approach regardless of syntax. Instructors should attempt to reduce the number of functions they expose students to over the course of a semester, particularly in an introductory class. This will help reduce cognitive load. 
+
+One criticism of the `tidyverse` is how many functions the associated packages contain. However, while the `tidyverse` section exposed students to `r nrow(tidyfunctions)`, compared to the `r nrow(formulafunctions)` functions shown in the formula section, both labs focused on a relatively small number of functions. Because there were 12 labs in the semester, this averages out to approximately `r round(nrow(tidyfunctions)/12)` functions per lab for the `tidyverse` section compared to an average `r round(nrow(formulafunctions)/12)` functions shown in the formula section. 
+
+The exercise of counting R functions in existing materials, using the `getParseData()` function, is one we recommend all instructors attempt, particularly before re-teaching a course. It can be eye-opening to discover how many functions you show students, and which functions are only used once. 
+
+We hope this pilot helps answer some initial questions about the impact of R syntax on teaching introductory statistics, while also raising further questions for future study. While some aspects of the analysis in this study suggest the formula syntax is simpler for students to learn and use, there are still many course scenarios for which we believe the `tidyverse` syntax is the most appropriate choice. While formula syntax can be used throughout an entire semester of introductory statistics, it does not offer functionality for tasks like data wrangling. This means students who will go on to additional statistics or data science classes may be better served by an early introduction to `tidyverse`. However, in order to determine this conclusively, additional study would be needed. 
+
+No matter which syntax an instructor chooses, it appears possible to limit the number of functions shown in a semester, and provide students with a positive learning experience. 
+
+
+
+
+
+# Acknowledgements
+
+Thanks to Sean Kross for his guidance about parsing R function data, and Nick Horton for his useful comments. 
+
+
+
+# (APPENDIX) Appendix {-} 
+
+# Functions used {#sec:functions}
+
+\begin{table}[H]
+\centering
+  \begin{subtable}[t]{0.3\linewidth}
+    \centering
+    \begin{itemize}
+    \itemsep-5mm
+```{r, results = 'asis'}
+bothfunctions %>%
+  mutate(text = paste("\\item", text, "\n")) %>%
+  pull(text) %>%
+  walk(cat)
+```
+    \end{itemize}
+    \caption{Used in both sections}
+  \end{subtable}
+  \hfill
+    \begin{subtable}[t]{0.3\linewidth}
+    \centering
+    \begin{itemize}
+    \itemsep-5mm
+```{r, results = 'asis'}
+formulafunctions %>%
+  mutate(text = paste("\\item", text, "\n")) %>%
+  mutate(text = gsub("_", "\\_", text, fixed = TRUE)) %>%
+  pull(text) %>%
+  walk(cat)
+```
+    \end{itemize}
+    \caption{Used only in formula}
+  \end{subtable}
+  \hfill
+  \begin{subtable}[t]{0.3\linewidth}
+    \centering
+    \begin{itemize}
+    \itemsep-5mm
+```{r, results = 'asis'}
+tidyfunctions %>%
+  mutate(text = paste("\\item", text, "\n")) %>%
+  mutate(text = gsub("_", "\\_", text, fixed = TRUE)) %>%
+  pull(text) %>%
+  walk(cat)
+```
+    \end{itemize}
+    \caption{Used only in tidyverse}
+  \end{subtable}
+  \caption{Lists of functions, and which section(s) they were used in.} 
+\end{table}
