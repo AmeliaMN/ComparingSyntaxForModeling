@@ -32,10 +32,12 @@ blind <- FALSE
 ```
 
 ```{r setup, include=FALSE}
-knitr::knit_hooks$set(document = function(x) {sub('\\usepackage[]{color}', '\\usepackage{xcolor}', x, fixed = TRUE)})
+knitr::knit_hooks$set(document = function(x) {
+  sub("\\usepackage[]{color}", "\\usepackage{xcolor}", x, fixed = TRUE)
+})
 
 
-knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, warning = FALSE, out.width = "80%", fig.asp = 0.618, fig.align = "center", time_it = FALSE, comment="")
+knitr::opts_chunk$set(echo = FALSE, cache = FALSE, message = FALSE, warning = FALSE, out.width = "80%", fig.asp = 0.618, fig.align = "center", time_it = FALSE, comment = "")
 here::i_am("PaperDraft.Rmd")
 library(kableExtra)
 options(knitr.kable.NA = "", ggplot2.discrete.fill = c("#64baaa", "#154e56"), ggplot2.discrete.colour = c("#64baaa", "#154e56"))
@@ -47,22 +49,24 @@ our_table <- function(x, ...) {
 
 # Some code to add chunk captions
 library(knitr)
-chunk_hook = knit_hooks$get("chunk")
+chunk_hook <- knit_hooks$get("chunk")
 knit_hooks$set(chunk = function(x, options) {
-  x = chunk_hook(x, options)
-  if(!is.null(options$codecap))
-    x = paste0(x, "\n\\captionof{chunk}{", options$codecap,"}\n")
-  if(!is.null(options$ref))
-    x = paste0(x, "\n\\label{", options$ref,"}\n")
-  
+  x <- chunk_hook(x, options)
+  if (!is.null(options$codecap)) {
+    x <- paste0(x, "\n\\captionof{chunk}{", options$codecap, "}\n")
+  }
+  if (!is.null(options$ref)) {
+    x <- paste0(x, "\n\\label{", options$ref, "}\n")
+  }
+
   # Based on https://stackoverflow.com/questions/53887473/how-can-i-control-fontsize-and-linestretch-of-code-chunks-independently-from-the
-  code_space = 1
-  text_space = 2
-  
+  code_space <- 1
+  text_space <- 2
+
   paste0(
-    "\\linespread{", code_space,"}\n", 
+    "\\linespread{", code_space, "}\n",
     x,
-    "\\linespread{", text_space,"}\n",
+    "\\linespread{", text_space, "}\n",
     "\\vspace{3mm}\\setlength{\\parindent}{15pt}"
   )
 })
@@ -93,8 +97,8 @@ youtube_weeks <- read_csv(here("data", "processed", "youtube_weeks.csv"), col_ty
   mpu = col_double(),
   mps = col_double(),
   percent_per_student = col_double(),
-  percent_per_user= col_double()
-)) 
+  percent_per_user = col_double()
+))
 
 youtube_videos <- read_csv(here("data", "processed", "youtube_videos.csv"), col_types = cols(
   week = col_double(),
@@ -153,14 +157,16 @@ qs <- prepostsurvey %>%
 
 prepostsurvey <- prepostsurvey %>%
   slice(-1) %>%
-   mutate(Section.x = case_when(
-     Section.x == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
-     Section.x == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
-   ),
-   Section.y = case_when(
-     Section.y == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
-     Section.y == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
-   ))
+  mutate(
+    Section.x = case_when(
+      Section.x == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
+      Section.x == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
+    ),
+    Section.y = case_when(
+      Section.y == "202040STAT220-01 and 202040STAT220-52" ~ "formula",
+      Section.y == "202040STAT220-01 and 202040STAT220-53" ~ "tidyverse"
+    )
+  )
 
 
 allfunctions <- read_csv(here("data", "processed", "allfunctions.csv"),
@@ -232,7 +238,7 @@ gf_histogram(~bill_length_mm, data = penguins)
 mean(~bill_length_mm, data = penguins, na.rm = TRUE)
 
 # tidyverse syntax
-ggplot(penguins) + 
+ggplot(penguins) +
   geom_histogram(aes(x = bill_length_mm))
 penguins %>%
   drop_na(bill_length_mm) %>%
@@ -369,8 +375,10 @@ Figure \ref{fig:prelablength} indicates RMarkdown documents for the `tidyverse` 
 labsfortesting <- lablines %>%
   drop_na(file) %>%
   pivot_wider(week, names_from = section, values_from = lines) %>%
-  mutate(diff = tidyverse - formula,
-         perc_diff = (diff/formula)*100) %>%
+  mutate(
+    diff = tidyverse - formula,
+    perc_diff = (diff / formula) * 100
+  ) %>%
   drop_na(week)
 ```
 
@@ -380,11 +388,13 @@ We can quantify how much longer the `tidyverse` documents were, either in terms 
 youtube_videos <- youtube_videos %>%
   mutate(week_topic = as_factor(week_topic)) %>%
   mutate(week_topic, fct_reorder(week_topic, week)) %>%
-  complete(week = full_seq(1:15, 1), nesting(section)) 
+  complete(week = full_seq(1:15, 1), nesting(section))
 
 youtube_videos %>%
-  mutate(week = case_when(section == "formula" ~  week - 0.15,
-                          section == "tidyverse" ~ week + 0.25)) %>%
+  mutate(week = case_when(
+    section == "formula" ~ week - 0.15,
+    section == "tidyverse" ~ week + 0.25
+  )) %>%
   ggplot(aes(x = week, y = tot_min, fill = section)) +
   geom_col(position = "stack", color = "white", width = 0.4) +
   scale_x_continuous(breaks = seq(from = , to = 15, by = 2)) +
@@ -408,9 +418,11 @@ Figure \ref{fig:videolength} shows the lengths of videos over the course of the 
 youtube_fortesting <- youtube_weeks %>%
   select(week, section, tot_min) %>%
   pivot_wider(week, names_from = section, values_from = tot_min) %>%
-  mutate(diff = tidyverse - formula, 
-         avglength = (tidyverse + formula)/2, 
-         perc_diff = (diff/formula)*100)
+  mutate(
+    diff = tidyverse - formula,
+    avglength = (tidyverse + formula) / 2,
+    perc_diff = (diff / formula) * 100
+  )
 ```
 
 We can again compute the percentage difference in total video length (adding together multiple videos in weeks that had them), and compute the mean of that difference. This shows us that `tidyverse` labs were `r round(mean(youtube_fortesting$diff))` minutes longer or `r round(mean(youtube_fortesting$perc_diff))`% longer than formula videos, on average. The `tidyverse` labs appear to be slightly longer in of lines of code and video length, although these differences are slight.
@@ -468,22 +480,24 @@ pre_sum <- pre_sum %>%
   drop_na(feeling) %>%
   group_by(Section, skill, feeling) %>%
   summarize(n = n()) %>%
-  mutate(prop = n/sum(n)) %>%
+  mutate(prop = n / sum(n)) %>%
   select(-n) %>%
-  mutate(type = "pre") 
+  mutate(type = "pre")
 
 post_sum <- prepostsurvey %>%
   select(Section.y, Q11.y:Q16.y) %>%
   drop_na(Section.y) %>%
-  pivot_longer(-Section.y, names_to = "skill", 
-                 values_to = "feeling") %>%
+  pivot_longer(-Section.y,
+    names_to = "skill",
+    values_to = "feeling"
+  ) %>%
   rename(Section = Section.y)
 
 post_sum <- post_sum %>%
   drop_na(feeling) %>%
   group_by(Section, skill, feeling) %>%
   summarize(n = n()) %>%
-  mutate(prop = n/sum(n)) %>%
+  mutate(prop = n / sum(n)) %>%
   select(-n) %>%
   mutate(type = "post")
 
@@ -491,16 +505,17 @@ prepost_sum <- pre_sum %>%
   bind_rows(post_sum) %>%
   mutate(type = as_factor(type)) %>%
   mutate(type = fct_relevel(type, "post", "pre")) %>%
-  mutate(skill = str_remove_all(skill, ".[xy]"))%>%
+  mutate(skill = str_remove_all(skill, ".[xy]")) %>%
   mutate(skill = as_factor(skill)) %>%
   mutate(skill = fct_rev(fct_relevel(skill, "Q12", "Q13", "Q14", "Q15", "Q16", "Q11"))) %>%
-  mutate(skill = fct_recode(skill, 
-                            "Programming Efficient" = "Q13",
-                            "Raw Data" = "Q12",
-                            "Analyses Easier" = "Q15",
-                            "Search Online" = "Q16",
-                            "Overcome Problem" = "Q14",
-                            "Programming Confident" = "Q11"))
+  mutate(skill = fct_recode(skill,
+    "Programming Efficient" = "Q13",
+    "Raw Data" = "Q12",
+    "Analyses Easier" = "Q15",
+    "Search Online" = "Q16",
+    "Overcome Problem" = "Q14",
+    "Programming Confident" = "Q11"
+  ))
 
 prepost_pos <- prepost_sum %>%
   filter(feeling %in% c("4", "5 - strongly agree"))
@@ -510,7 +525,7 @@ prepost_neg <- prepost_sum %>%
 
 prepost_neu <- prepost_sum %>%
   filter(feeling == "3 - neutral") %>%
-  mutate(prop = prop/2) 
+  mutate(prop = prop / 2)
 
 prepost_pos <- prepost_pos %>%
   bind_rows(prepost_neu) %>%
@@ -530,14 +545,16 @@ prepost_neg <- prepost_neg %>%
 ```{r pre-post, fig.cap = "Pre- and post-survey responses to Likert-scale questions. Most questions show some level of improvement, such as the first question, `I am confident in my ability to make use of programming software to work with data.' but others show no change or even a decline in agreement.", out.width = "95%", fig.asp = 1}
 likert_palette <- c("1 - strongly disagree" = "#a6611a", "2" = "#dfc27d", "3 - neutral" = "grey90", "4" = "#80cdc1", "5 - strongly agree" = "#018571")
 prepost_pos %>%
-ggplot(aes(x=type, y=prop, fill = feeling)) + 
+  ggplot(aes(x = type, y = prop, fill = feeling)) +
   geom_col() +
-  geom_col(data=prepost_neg) +
+  geom_col(data = prepost_neg) +
   coord_flip() +
-  facet_nested(rows = vars(skill, Section), switch = "y", 
-               strip = strip_nested(size = "variable"),
-               labeller = labeller(skill = label_wrap_gen(width = 10))) +
-  theme_bw() + 
+  facet_nested(
+    rows = vars(skill, Section), switch = "y",
+    strip = strip_nested(size = "variable"),
+    labeller = labeller(skill = label_wrap_gen(width = 10))
+  ) +
+  theme_bw() +
   theme(strip.placement = "outside") +
   theme(
     axis.ticks.x = element_blank(),
@@ -546,12 +563,12 @@ ggplot(aes(x=type, y=prop, fill = feeling)) +
     legend.title = element_blank(),
     text = element_text(size = 15),
     strip.text.y.left = element_text(angle = 0, size = 8),
-    panel.spacing.y = unit(c(rep(c(2,5), times = 5), 2), "mm")
+    panel.spacing.y = unit(c(rep(c(2, 5), times = 5), 2), "mm")
   ) +
   xlab("") +
   ylab("Percentage") +
-  scale_y_continuous(limits = c(-1, 1), breaks = seq(from=-1, to = 1, by = 0.5), labels = c(100, 50, 0, 50, 100)) +
-  scale_fill_manual(values = likert_palette) 
+  scale_y_continuous(limits = c(-1, 1), breaks = seq(from = -1, to = 1, by = 0.5), labels = c(100, 50, 0, 50, 100)) +
+  scale_fill_manual(values = likert_palette)
 ```
 
 Likely, the questions used by The Carpentries were inappropriate for this setting, and a different set of survey questions would have been more appropriate for this group. For example, this class did not include any explicit instruction on searching for answers online. This was an intentional choice, because novices typically struggle to identify which search results are relevant to their queries and get overwhelmed by the multitude of syntactic options they encounter. Instead, students with questions were referred to an "all the R you need" cheatsheet they were given at the beginning of the semester, which attempted to summarize every function they would encounter. Likely, students still attempted to search for answers online, which may be why the responses to questions about searching online and overcoming problems got more negative over the course of the semester. In particular, students in the formula section who searched for answers online likely saw unfamiliar syntax, while students in the `tidyverse` section may have found `tidyverse` answers because of the popularity of the syntax online.
@@ -563,12 +580,14 @@ pre_paired <- prepostsurvey %>%
   select(Section.x, Q11.x:Q16.x, Section.y, Q11.y:Q16.y) %>%
   drop_na() %>%
   mutate(across(contains("Q"), parse_number)) %>%
-  mutate(Q11 = Q11.y - Q11.x,
-         Q12 = Q12.y - Q12.x,
-         Q13 = Q13.y - Q13.x,
-         Q14 = Q14.y - Q14.x,
-         Q15 = Q15.y - Q15.x,
-         Q16 = Q16.y - Q16.x) %>%
+  mutate(
+    Q11 = Q11.y - Q11.x,
+    Q12 = Q12.y - Q12.x,
+    Q13 = Q13.y - Q13.x,
+    Q14 = Q14.y - Q14.x,
+    Q15 = Q15.y - Q15.x,
+    Q16 = Q16.y - Q16.x
+  ) %>%
   rename(Section = Section.x) %>%
   select(Section, Q11:Q16) %>%
   pivot_longer(-Section, names_to = "skill", values_to = "diff")
@@ -583,7 +602,7 @@ prepost_joined <- pre_paired %>%
     "Overcome Problem" = "Q14",
     "Programming Confident" = "Q11"
   )) %>%
-  mutate(skill = fct_relevel(skill, "Programming Confident", "Search Online", "Analyses Easier", "Overcome Problem","Programming Efficient", "Raw Data"))
+  mutate(skill = fct_relevel(skill, "Programming Confident", "Search Online", "Analyses Easier", "Overcome Problem", "Programming Efficient", "Raw Data"))
 ```
 
 Because the questions were on Likert scales, it is not appropriate to compute an arithmetic mean of the differences, but median scores can be computed. To provide a broader picture of the distribution of responses, we also compute the 25th and 75th percentiles for question. This information is most easily displayed as a boxplot. The boxplots in question can be seen in Figure \ref{fig:prepost}.
@@ -642,7 +661,7 @@ prepostsurvey %>%
   group_by(Section.y, Q19.y) %>%
   summarize(n = n()) %>%
   mutate(prop = round(n / sum(n), digits = 2)) %>%
-  kable(col.names = c("Section", "Answer", "n", "Proportion"), caption = "Responses to the question, `Would you have preferred to learn the other syntax?'",  booktabs = TRUE)
+  kable(col.names = c("Section", "Answer", "n", "Proportion"), caption = "Responses to the question, `Would you have preferred to learn the other syntax?'", booktabs = TRUE)
 ```
 
 However, part of the explanation is likely that the students did not know what the other syntax looked like. Throughout the semester, the instructor was careful to only expose students to the syntax for the particular section. Several students asked to see the alternate syntax during office hours, but this was the exception and not the norm.
@@ -654,7 +673,7 @@ prepostsurvey %>%
   drop_na(Q22) %>%
   arrange(Section.y) %>%
   select(Section.y, Q22) %>%
-  kable(col.names = c("Section", "Response"), caption = "Reasons stated by students for their preference of which syntax to learn.",  booktabs = TRUE) %>%
+  kable(col.names = c("Section", "Response"), caption = "Reasons stated by students for their preference of which syntax to learn.", booktabs = TRUE) %>%
   column_spec(2, width = "6in")
 ```
 
@@ -678,10 +697,12 @@ prepostsurvey %>%
   ylab("") +
   xlab("") +
   coord_flip() +
-  theme(plot.title = element_text(hjust = 1), aspect.ratio = 2/3,
-        axis.text.y=element_text(hjust=0)) +
+  theme(
+    plot.title = element_text(hjust = 1), aspect.ratio = 2 / 3,
+    axis.text.y = element_text(hjust = 0)
+  ) +
   ggtitle("How was the experience of learning to program in R?") +
-    theme(
+  theme(
     legend.position = "bottom",
     legend.title = element_blank()
   )
@@ -753,11 +774,13 @@ No matter the explanation, this trend is particularly interesting when considere
 
 ```{r rstudio-hours, fig.cap="Hours of compute time per student over the course of the semester. Lines connect within students, to follow within-student variability."}
 rstudio_cloud <- rstudio_cloud %>%
-  mutate(month = as_factor(month))%>%
-  mutate(month_num = case_when(month == "September" ~ 0, 
-                               month == "October" ~ 1, 
-                               month == "November" ~ 2,
-                               month == "December" ~ 3))
+  mutate(month = as_factor(month)) %>%
+  mutate(month_num = case_when(
+    month == "September" ~ 0,
+    month == "October" ~ 1,
+    month == "November" ~ 2,
+    month == "December" ~ 3
+  ))
 # ggplot(rstudio_cloud) +
 #   geom_boxplot(aes(y = amount, x = section)) +
 #   facet_grid(~ rev(month)) +
@@ -769,12 +792,12 @@ rstudio_cloud <- rstudio_cloud %>%
 #   )
 
 # ggplot(rstudio_cloud, aes(y=amount, x = month_num, group = ID)) +
-#   geom_point(alpha = 0.5) + 
+#   geom_point(alpha = 0.5) +
 #   geom_line(alpha = 0.15) +
 #   facet_wrap(~section, nrow = 2)  +
 #   scale_x_continuous(breaks = 0:3, labels = c("September", "October", "November", "December")) +
 #   xlab("") +
-#   ylab("Hours of compute time on RStudio Cloud") 
+#   ylab("Hours of compute time on RStudio Cloud")
 ```
 
 ```{r, eval = FALSE}
@@ -805,14 +828,14 @@ ggplot(rstudio_cloud) +
     geom = "line", position = "identity", size = 0
   ) +
   guides(colour = guide_legend(override.aes = list(size = 1))) +
-facet_wrap(~month, drop = FALSE) +
+  facet_wrap(~month, drop = FALSE) +
   ylab("") +
   xlab("Hours of compute time on RStudio Cloud") +
   theme(
     legend.position = "bottom",
     legend.title = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks.y = element_blank()
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank()
   )
 ```
 
@@ -823,7 +846,7 @@ It is also important to note these numbers are likely inflated based on the way 
 ```{r}
 overallmean <- rstudio_cloud %>%
   group_by(section) %>%
-  summarize(mean=round(mean(amount), digits = 1)) %>%
+  summarize(mean = round(mean(amount), digits = 1)) %>%
   pivot_wider(names_from = section, values_from = mean)
 ```
 
@@ -837,8 +860,10 @@ Although the labs and assessments were of varying difficulty, we can compute a v
 options(knitr.kable.NA = "missing")
 rstudio_cloud %>%
   group_by(section, month) %>%
-  summarize(mean = round(mean(amount), digits = 1), 
-            sd = round(sd(amount), digits = 1)) %>%
+  summarize(
+    mean = round(mean(amount), digits = 1),
+    sd = round(sd(amount), digits = 1)
+  ) %>%
   mutate(info = paste0(mean, " (", sd, ")")) %>%
   select(section, info, month) %>%
   pivot_wider(names_from = month, values_from = info) %>%
@@ -850,12 +875,14 @@ options(knitr.kable.NA = "")
 topics2 <- tibble(week = 1:16, topic = c(NA, "DescribingData", "QuantitativeVariables", "CategoricalVariables", "Regression", "Bootstrap", "Randomization", "InferenceSingleProportion", "InferenceSingleMean", "TwoSample", "assessment", NA, "ANOVA", "ChiSquare", "RegressionInference", "assessment"))
 
 topics2 <- topics2 %>%
-  mutate(month = case_when(week < 4 ~ "September",
-                           week >= 4 & week < 9 ~ "October",
-                           week >=9 & week < 13 ~ "November",
-                           week >= 13 ~ "December"))
+  mutate(month = case_when(
+    week < 4 ~ "September",
+    week >= 4 & week < 9 ~ "October",
+    week >= 9 & week < 13 ~ "November",
+    week >= 13 ~ "December"
+  ))
 
-topics2 <- topics2 %>% 
+topics2 <- topics2 %>%
   drop_na(topic) %>%
   count(month) %>%
   mutate(n = ifelse(month == "December", 5, n))
@@ -865,11 +892,11 @@ rstudio_cloud %>%
   group_by(section, month) %>%
   summarize(mean = mean(amount)) %>%
   left_join(topics2) %>%
-  mutate(approx_per = round(mean/n, digits =2)) %>%
+  mutate(approx_per = round(mean / n, digits = 2)) %>%
   select(section, month, approx_per) %>%
   pivot_wider(names_from = section, values_from = approx_per) %>%
-  mutate(diff = tidyverse - formula, mins = diff*60) %>%
-  mutate(difference = ifelse(is.na(diff), NA, paste0(diff, " (", round(mins), " minutes)"))) %>% 
+  mutate(diff = tidyverse - formula, mins = diff * 60) %>%
+  mutate(difference = ifelse(is.na(diff), NA, paste0(diff, " (", round(mins), " minutes)"))) %>%
   mutate(formula = as.character(formula), tidyverse = as.character(tidyverse)) %>%
   select(month:tidyverse, difference) %>%
   pivot_longer(-month, names_to = "section", values_to = "num") %>%
@@ -888,7 +915,7 @@ The results can also be used by instructors attempting to ballpark how many usag
 
 ```{r}
 tidycs <- csfunctions %>%
-   filter(section == "tidyverse")
+  filter(section == "tidyverse")
 formulacs <- csfunctions %>%
   filter(section == "formula")
 bothcs <- formulacs %>%
@@ -926,7 +953,7 @@ The parsing code was also run on the "All the R you need for intro stats" cheats
 
 ```{r}
 f_oncs_notinclass <- formulacs %>%
-   anti_join(formulafunctions, by = "text")
+  anti_join(formulafunctions, by = "text")
 
 f_inclass_notoncs <- formulafunctions %>%
   anti_join(formulacs, by = "text")
@@ -949,13 +976,13 @@ These results helped the instructor in subsequent semesters, because she could b
 ### Function repetition
 
 ```{r functionsummary, results='asis'}
- num_reused <- allfunctions %>%
+num_reused <- allfunctions %>%
   group_by(section) %>%
-  summarize(n_fun = n(), reused = sum(n>1), prop = round(sum(n>1)/n(), 2)*100)
+  summarize(n_fun = n(), reused = sum(n > 1), prop = round(sum(n > 1) / n(), 2) * 100)
 
 num_reused %>%
   mutate(prop = paste0(prop, "%")) %>%
-  kable(col.names=c("Section", "Number of functions", "Number used \nmore than once", "Proportion of \n functions reused"), caption = "Number of functions used in each section, including the number used more than once and the proportion reused.", align = "l", booktabs = TRUE) %>%
+  kable(col.names = c("Section", "Number of functions", "Number used \nmore than once", "Proportion of \n functions reused"), caption = "Number of functions used in each section, including the number used more than once and the proportion reused.", align = "l", booktabs = TRUE) %>%
   column_spec(2:4, width = "1.5in")
 ```
 
@@ -967,9 +994,9 @@ p_tidyverse_functions <- allfunctions %>%
   mutate(text = fct_reorder(text, n)) %>%
   mutate(text = fct_relevel(text, "library", after = Inf)) %>%
   slice_max(order_by = n, n = 15) %>%
-  ggplot() + 
-  geom_vline(xintercept = 10)+
-  geom_col(aes(y=text, x=n), fill = "#154e56") + 
+  ggplot() +
+  geom_vline(xintercept = 10) +
+  geom_col(aes(y = text, x = n), fill = "#154e56") +
   xlim(0, 35) +
   labs(title = "tidyverse", x = "", y = "")
 ```
@@ -979,11 +1006,11 @@ p_formula_functions <- allfunctions %>%
   filter(n > 2, section == "formula") %>%
   mutate(text = fct_reorder(text, n)) %>%
   slice_max(order_by = n, n = 15) %>%
-  ggplot() + 
-  geom_vline(xintercept = 10)+
-  geom_col(aes(y=text, x=n), fill = "#64baaa") + 
+  ggplot() +
+  geom_vline(xintercept = 10) +
+  geom_col(aes(y = text, x = n), fill = "#64baaa") +
   xlim(0, 35) +
-  labs(title = "formula", x="", y="")
+  labs(title = "formula", x = "", y = "")
 ```
 
 ```{r common-functions, fig.cap = "Top 15 functions in each section. Notice that the tidyverse section has many more functions repeated more than 10 times during the semester."}
@@ -1239,7 +1266,7 @@ These two insights are slightly contradictory-- perhaps the formula section stud
 
 ```{r}
 tidytotalfunctions <- nrow(tidyfunctions_unique) + nrow(bothfunctions)
-formulatotalfunctions <- nrow(formulafunctions_unique)+ nrow(bothfunctions)
+formulatotalfunctions <- nrow(formulafunctions_unique) + nrow(bothfunctions)
 ```
 
 The `tidyverse` section exposed students to `r tidytotalfunctions`, compared to the `r formulatotalfunctions` functions shown in the formula section. Both labs focused on a relatively small number of functions. Because there were 12 labs in the semester, this averages out to approximately `r round(tidytotalfunctions/12)` functions per lab for the `tidyverse` section compared to an average `r round(formulatotalfunctions/12)` functions shown in the formula section. The `tidyverse` section saw more unique functions, but both sections were limited to a small vocabulary of functions for the semester.
