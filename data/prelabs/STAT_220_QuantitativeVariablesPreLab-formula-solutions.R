@@ -5,53 +5,55 @@ library(mosaic)
 library(ggformula)
 
 
-## --------------------------------------------------------------------------------------------------------------------
-options(na.rm = TRUE)
-
-
 ## ----data-load-------------------------------------------------------------------------------------------------------
 GSS <- read.csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- filter(GSS, should_marijuana_be_made_legal != "")
-GSS <- filter(GSS, self_emp_or_works_for_somebody != "")
+gf_histogram(~number_of_hours_worked_last_week, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-tally(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, format = "proportion")
-0.69-0.64
+gf_histogram(~number_of_hours_worked_last_week, data = GSS, binwidth = 10)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS,conf.level = 0.9)
+gf_histogram(~number_of_hours_worked_last_week, data = GSS, binwidth = 10) # change binwidth
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, alternative = "two.sided", success = "Legal")
+gf_histogram(~number_of_brothers_and_sisters, data = GSS, binwidth = 1)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(highest_year_of_school_completed~born_in_us, data=GSS)
-12.85-13.97
+gf_density(~number_of_brothers_and_sisters, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS)
+gf_boxplot(~number_of_brothers_and_sisters, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS,alternative="two.sided", mu = 0)
+gf_boxplot(marital_status~number_of_brothers_and_sisters, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- transform(GSS, diff = highest_year_school_completed_father- highest_year_school_completed_mother)
+gf_boxplot(number_of_hours_worked_last_week ~ factorize(marital_status), data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(~diff, data = GSS)
+mean(~number_of_hours_worked_last_week, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(~diff, data = GSS, alternative = "two.sided", mu = 0)
+mean(~number_of_hours_worked_last_week, data = GSS, na.rm = TRUE)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+median(~number_of_brothers_and_sisters, data = GSS, na.rm = TRUE)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+fivenum(~number_of_hours_worked_last_week, data = GSS, na.rm = TRUE)
+favstats(~number_of_hours_worked_last_week, data = GSS, na.rm = TRUE)
 

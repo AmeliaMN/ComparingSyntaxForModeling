@@ -5,53 +5,38 @@ library(mosaic)
 library(ggformula)
 
 
-## --------------------------------------------------------------------------------------------------------------------
-options(na.rm = TRUE)
-
-
 ## ----data-load-------------------------------------------------------------------------------------------------------
 GSS <- read.csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- filter(GSS, should_marijuana_be_made_legal != "")
-GSS <- filter(GSS, self_emp_or_works_for_somebody != "")
+gf_point(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-tally(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, format = "proportion")
-0.69-0.64
+cor(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS,conf.level = 0.9)
+cor(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS, use = "complete.obs")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, alternative = "two.sided", success = "Legal")
+lm(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(highest_year_of_school_completed~born_in_us, data=GSS)
-12.85-13.97
+m1 <- lm(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS)
+summary(m1)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS,alternative="two.sided", mu = 0)
+5.847 + 0.594*12
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- transform(GSS, diff = highest_year_school_completed_father- highest_year_school_completed_mother)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-mean(~diff, data = GSS)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-t.test(~diff, data = GSS, alternative = "two.sided", mu = 0)
+15 - 12.975
 

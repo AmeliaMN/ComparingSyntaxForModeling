@@ -10,39 +10,42 @@ GSS <- read_csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-ggplot(GSS) + geom_boxplot(aes(x=marital_status, y=number_of_hours_worked_last_week))
+ggplot(GSS) +
+  geom_point(aes(x = highest_year_school_completed_spouse, y = highest_year_of_school_completed))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
 GSS %>%
-  drop_na(marital_status, number_of_hours_worked_last_week) %>%
-  group_by(marital_status) %>%
-  summarize(n = n())
-
-GSS %>%
-  drop_na(marital_status, number_of_hours_worked_last_week) %>%
-  group_by(marital_status) %>%
-  summarize(sd = sd(number_of_hours_worked_last_week))
-16.7/13.7
-
-
-## --------------------------------------------------------------------------------------------------------------------
-a1 <- aov(number_of_hours_worked_last_week~marital_status, data = GSS)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-summary(a1)
+  summarize(correlation = cor(y = highest_year_of_school_completed, 
+                              x = highest_year_school_completed_spouse))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
 GSS %>%
-  drop_na(marital_status, number_of_hours_worked_last_week) %>%
-  group_by(marital_status) %>%
-  summarize(n = n())
-
-sqrt(208.6*(1/239+1/618))
+  drop_na(highest_year_of_school_completed, highest_year_school_completed_spouse) %>%
+  summarize(correlation = cor(
+    y = highest_year_of_school_completed,
+    x = highest_year_school_completed_spouse))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-TukeyHSD(a1, conf.level = 0.8)
+lm(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+m1 <- lm(highest_year_of_school_completed ~ highest_year_school_completed_spouse, data = GSS)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+m1 %>%
+  summary()
+
+
+## --------------------------------------------------------------------------------------------------------------------
+5.847 + 0.594*12
+
+
+## --------------------------------------------------------------------------------------------------------------------
+5.847 + 0.594*12
+15 - 12.975
 

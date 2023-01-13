@@ -6,7 +6,7 @@ output: html_document
 ```{r setup, message = FALSE}
 knitr::opts_chunk$set(echo = TRUE, message=FALSE)
 library(tidyverse)
-here::i_am("processing_data/YouTubeData.Rmd")
+here::i_am("data/processing_data/YouTubeData.Rmd")
 library(here)
 ```
 

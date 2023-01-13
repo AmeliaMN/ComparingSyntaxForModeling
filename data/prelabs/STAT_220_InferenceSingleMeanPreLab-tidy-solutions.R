@@ -1,57 +1,73 @@
 ## ----setup, include=FALSE--------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, error = TRUE)
 library(Lock5Data)
-library(mosaic)
-library(ggformula)
-set.seed(42)
+library(tidyverse)
+library(infer)
 
 
 ## ----data-load-------------------------------------------------------------------------------------------------------
-GSS <- read.csv("data/GSS_clean.csv")
+GSS <- read_csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(number_of_hours_worked_last_week ~ self_emp_or_works_for_somebody, data = GSS, na.rm = TRUE)
+GSS <- GSS %>%
+  drop_na(number_of_hours_worked_last_week)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-diff(mean(number_of_hours_worked_last_week ~ self_emp_or_works_for_somebody, data = GSS))
+GSS %>%
+  summarize(mean(number_of_hours_worked_last_week))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-one_randomization <- mean(number_of_hours_worked_last_week ~ shuffle(self_emp_or_works_for_somebody), data = GSS)
-one_randomization
-diff(one_randomization)
+GSS %>%
+  t_test(response = number_of_hours_worked_last_week, 
+         alternative = "two-sided", mu = 40)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-set.seed(42)
+GSS %>% 
+  t_test(response = number_of_hours_worked_last_week, 
+         conf_int = TRUE)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-randomization <- do(1000) * diff(mean(number_of_hours_worked_last_week ~ shuffle(self_emp_or_works_for_somebody), data = GSS))
+GSS %>%
+  summarize(
+    mean = mean(number_of_hours_worked_last_week),
+    sd = sd(number_of_hours_worked_last_week),
+    n = n()
+  ) %>%
+  mutate(se = sd / sqrt(n)) 
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-gf_histogram(~Someone.else, data = randomization)
+GSS %>%
+  summarize(
+    mean = mean(number_of_hours_worked_last_week),
+    sd = sd(number_of_hours_worked_last_week),
+    n = n()
+  ) %>%
+  mutate(se = sd / sqrt(n)) %>%
+  mutate(t_stat = (mean - 40) / se) %>%
+  mutate(pvalue = 2 * pt(t_stat, df = n - 1, lower.tail = FALSE))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(~Someone.else, data = randomization)
+GSS %>%
+  summarize(
+    mean = mean(number_of_hours_worked_last_week),
+    sd = sd(number_of_hours_worked_last_week),
+    n = n()
+  ) %>%
+  mutate(
+    se = sd / sqrt(n),
+    critical_t = qt(0.975, df = 1380),
+    me = critical_t * se
+  ) %>%
+  mutate(low = mean - me, high = mean + me)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-diff(mean(number_of_hours_worked_last_week~self_emp_or_works_for_somebody, data = GSS))
-
-
-## --------------------------------------------------------------------------------------------------------------------
-pdata(~Someone.else, data = randomization, q = 2.74)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-(1-0.978)*2
-
-
-## --------------------------------------------------------------------------------------------------------------------
-(1-0.978)
+qt(0.975, df = 1380)
 

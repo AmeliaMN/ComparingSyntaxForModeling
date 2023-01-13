@@ -19,6 +19,7 @@ formula,library,3
 formula,lm,1
 formula,mean,2
 formula,median,1
+formula,options,1
 formula,pnorm,1
 formula,predict,2
 formula,prop.test,2

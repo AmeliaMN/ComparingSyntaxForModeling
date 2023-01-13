@@ -8,12 +8,13 @@
     citecolor={blue},
     urlcolor={blue}
 }
+\usepackage{setspace}
 
 
 % need this for the chunk captioning
 \usepackage[margin=0.6cm]{caption}
 \usepackage{floatrow}
-
+\usepackage{subcaption}
 \DeclareNewFloatType{chunk}{placement=H, fileext=chk, name=}
 \captionsetup{options=chunk}
 \renewcommand{\thechunk}{Code Block~\thesection.\arabic{chunk}}

@@ -1,57 +1,84 @@
 ## ----setup, include=FALSE--------------------------------------------------------------------------------------------
 knitr::opts_chunk$set(echo = TRUE, error = TRUE)
 library(Lock5Data)
-library(mosaic)
-library(ggformula)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-options(na.rm = TRUE)
+library(tidyverse)
+library(infer)
 
 
 ## ----data-load-------------------------------------------------------------------------------------------------------
-GSS <- read.csv("data/GSS_clean.csv")
+GSS <- read_csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- filter(GSS, should_marijuana_be_made_legal != "")
-GSS <- filter(GSS, self_emp_or_works_for_somebody != "")
+GSS <- GSS %>%
+  drop_na(self_emp_or_works_for_somebody)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-tally(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, format = "proportion")
-0.69-0.64
+GSS %>%
+  group_by(self_emp_or_works_for_somebody) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n/sum(n))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS,conf.level = 0.9)
+GSS %>% 
+  prop_test(response = self_emp_or_works_for_somebody, 
+            alternative = "greater", p = 0.1)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-prop.test(should_marijuana_be_made_legal~self_emp_or_works_for_somebody, data = GSS, alternative = "two.sided", success = "Legal")
+GSS %>% 
+  prop_test(response = self_emp_or_works_for_somebody, 
+            conf_int = TRUE)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(highest_year_of_school_completed~born_in_us, data=GSS)
-12.85-13.97
+sqrt((0.1*0.9)/2261)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS)
+(0.103-0.1)/0.006309152
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(highest_year_of_school_completed~born_in_us, data=GSS,alternative="two.sided", mu = 0)
+1-pnorm(0.4754997)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-GSS <- transform(GSS, diff = highest_year_school_completed_father- highest_year_school_completed_mother)
+GSS %>%
+  group_by(self_emp_or_works_for_somebody) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n), total = sum(n)) %>%
+  filter(self_emp_or_works_for_somebody == "Self-employed") %>%
+  mutate(se = sqrt(prop * (1 - prop) / total)) %>%
+  mutate(z_stat = (prop - 0.1) / se) %>%
+  mutate(pvalue = pnorm(z_stat, lower.tail = FALSE))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-mean(~diff, data = GSS)
+sqrt((0.103*(1-0.103))/2261)
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-t.test(~diff, data = GSS, alternative = "two.sided", mu = 0)
+qnorm(0.975)
+
+
+## --------------------------------------------------------------------------------------------------------------------
+0.103 - 1.96 * 0.00639
+0.103 + 1.96 * 0.00639
+
+
+## --------------------------------------------------------------------------------------------------------------------
+GSS %>%
+  group_by(self_emp_or_works_for_somebody) %>%
+  summarize(n = n()) %>%
+  mutate(prop = n / sum(n), total = sum(n)) %>%
+  filter(self_emp_or_works_for_somebody == "Self-employed") %>%
+  mutate(
+    se = sqrt(prop * (1 - prop) / total),
+    critical_z = 1.96,
+    me = critical_z * se
+  ) %>%
+  mutate(low = prop - me, high = prop + me)
 

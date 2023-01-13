@@ -5,37 +5,22 @@ library(mosaic)
 library(ggformula)
 
 
-## --------------------------------------------------------------------------------------------------------------------
-options(na.rm = TRUE)
-
-
 ## ----data-load-------------------------------------------------------------------------------------------------------
 GSS <- read.csv("data/GSS_clean.csv")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-gf_boxplot(number_of_hours_worked_last_week~marital_status, data = GSS)
+tally(~general_happiness, data = GSS, useNA = "no")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-tally(~marital_status, data = GSS)
-sd(number_of_hours_worked_last_week~marital_status, data = GSS)
-16.68/13.72
+chisq.test(tally(~general_happiness, data = GSS, useNA = "no"))
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-a1 <- aov(number_of_hours_worked_last_week~marital_status, data = GSS)
+tally(marital_status ~ general_happiness, data = GSS, useNA = "no")
 
 
 ## --------------------------------------------------------------------------------------------------------------------
-summary(a1)
-
-
-## --------------------------------------------------------------------------------------------------------------------
-tally(~marital_status, data = GSS)
-sqrt(208.6*(1/403+1/998))
-
-
-## --------------------------------------------------------------------------------------------------------------------
-TukeyHSD(a1, conf.level = 0.8)
+chisq.test(tally(marital_status ~ general_happiness, data = GSS, useNA = "no"))
 
