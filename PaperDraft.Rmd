@@ -1273,7 +1273,7 @@ The `tidyverse` section exposed students to `r tidytotalfunctions`, compared to 
 
 Beyond the difference in number of functions shown, there were also differences in the amount of repetition functions saw in the two sections. In the `tidyverse` section, there were more functions shown more than once, and a larger proportion of functions were repeated. The most common functions in the `tidyverse` section were also shown many more times than the most common functions in the formula section.
 
-Regardless of the syntax they choose, we recommend instructors attempt to reduce the number of functions they expose students to over the course of a semester, particularly in an introductory class, and repeat them as much as possible. This will help reduce cognitive load. If you are optimizing for the minimum number of functions, the formula syntax may be the best solution. If you would prefer to maximimize repetition, the `tidyverse` syntax appears better.
+Regardless of the syntax they choose, we recommend instructors attempt to reduce the number of functions they expose students to over the course of a semester, particularly in an introductory class, and repeat them as much as possible. This will help reduce cognitive load. If you are optimizing for the minimum number of functions, the formula syntax may be the best solution. If you would prefer to maximize repetition, the `tidyverse` syntax appears better.
 
 The exercise of counting R functions in existing materials, using the `getParseData()` function, is one we recommend all instructors attempt, particularly before re-teaching a course. It can be eye-opening to discover how many functions you show students, and which functions are only used once.
 
