@@ -10,8 +10,9 @@ keywords: |
   R language, instruction, data science, statistical computing
   
 abstract: >
-  This paper reports on a head-to-head comparison run in a pair of introductory statistics labs, one conducted fully in the formula syntax, the other in tidyverse. Analysis of pre- and post-survey data show no differences between the two labs, so students appeared to have a positive experience regardless of section. Analysis of incidental data from YouTube and RStudio Cloud show interesting distinctions. The formula section appeared to watch a larger proportion of pre-lab YouTube videos, but spend less time computing on RStudio Cloud. Conversely, the tidyverse section watched a smaller proportion of the videos and spent more time computing. Analysis of lab materials showed that tidyverse labs tended to be slightly longer in terms of lines in the provided RMarkdown materials and minutes of the associated YouTube videos. Both labs relied on a quite small vocabulary of consistent functions, which can provide a starting point for instructors interested in teaching introductory statistics in R. The tidyverse labs exposed students to slightly more distinct R functions, but reused functions more frequently. This work provides additional evidence for instructors looking to choose between syntaxes for introductory statistics teaching. 
+  This paper reports on a head-to-head comparison run in a pair of introductory statistics labs, one conducted fully in the formula syntax, the other in tidyverse. Analysis of pre- and post-survey data show minimal differences between the two labs, with students reporting a positive experience regardless of section. Analysis of data from YouTube and RStudio Cloud show interesting distinctions. The formula section appeared to watch a larger proportion of pre-lab YouTube videos, but spend less time computing on RStudio Cloud. Conversely, the tidyverse section watched a smaller proportion of the videos and spent more time computing. Analysis of lab materials showed that tidyverse labs tended to be slightly longer in terms of lines in the provided RMarkdown materials and minutes of the associated YouTube videos. Both labs relied on a relatively small vocabulary of consistent functions, which can provide a starting point for instructors interested in teaching introductory statistics in R. The tidyverse labs exposed students to more distinct R functions, but reused functions more frequently. This work provides additional evidence for instructors looking to choose between syntaxes for introductory statistics teaching. 
 bibliography: references.bib
+biblio-style: apalike
 output:
   bookdown::pdf_book:
     base_format: rticles::asa_article
@@ -217,7 +218,7 @@ Typically, programming languages have only one valid syntax. For example, an aph
 
 The base syntax is used by the base R language [@rcoreteam2020], and is characterized by the use of dollar signs and square brackets. The formula syntax uses the tilde to separate response and explanatory variable(s) [@pruimetal2017]. The `tidyverse` syntax uses a data-first approach, and the pipe to move data between steps [@wickhametal2019].
 
-A comparison of using the three syntaxes for univariate statistics and displays can be seen in \ref{r-syntax}. This example code, like the rest in this paper, uses the `palmerpenguins` data [@horstetal2020]. All three pieces of code accomplish the same tasks, and all three use the R language. But, the syntax varies considerably.
+A comparison of using the three syntaxes for univariate statistics and displays can be seen in \ref{r-syntax}. This example code, like the rest in this paper, uses the `palmerpenguins` data [@horstetal2020]. All three pieces of code accomplish the same tasks, and all three use the R language. However, the syntax varies considerably.
 
 ```{r, eval = FALSE}
 library(palmerpenguins)
@@ -462,7 +463,7 @@ qs %>%
 \end{itemize}
 ````
 
-In Figure \ref{fig:pre-post}, you can see a visualization of these Likert-scale questions.The visualization shows the pre- and post-survey responses to the survey questions, broken down by section. There is no obvious overall trend. However, considerable improvement was seen in in the Programming Confident category, which suggests that students in both sections became more confident in their "ability to make use of programming software to work with data."
+Figure \ref{fig:pre-post} displays a visualization of these Likert-scale questions.The visualization shows the pre- and post-survey responses to the survey questions, broken down by section. There is no obvious overall trend. However, considerable improvement was seen in in the Programming Confident category, which suggests that students in both sections became more confident in their "ability to make use of programming software to work with data."
 
 Other questions showed small gains or unclear changes, like the Analyses Easier category. In the formula section, this question appears to show a small increase in agreement from pre- to post-survey, while the `tidyverse` section shows either no change or perhaps a slight improvement (more students saying they strongly agree, but fewer in the positive answers overall). Other questions show a decrease in agreement from the pre- to the post-survey, like Overcome Problem. Finally, some questions show improvement in one section but a decline in agreement in the other, like Search Online. In the `tidyverse` section, there appears to be an increase in their confidence in searching "for answers to [their] technical questions online," whereas in the formula section there is a decrease.
 
@@ -636,7 +637,7 @@ prepost_joined %>%
   )
 ```
 
-In Figure \ref{fig:prepost}, many of the boxplots are centered 0 (meaning the median response did not change over the course of the semester), so there was no overall difference in medians for those questions.
+In Figure \ref{fig:prepost}, many of the boxplots are centered at zero (meaning the median response did not change over the course of the semester), so there was no overall difference in medians for those questions.
 
 The one question where the boxes from both sections are centered above 0 is "I am confident in my ability to make use of programming software to work with data." For this question, the median is 1 in both sections, meaning the median student answered one level up on the question at the end of the course. Both boxes (the middle 50% of the data) are fully positive, although the lower whisker (minimum value) for both still includes zero.
 
