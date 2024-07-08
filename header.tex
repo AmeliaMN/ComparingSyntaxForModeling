@@ -3,6 +3,7 @@
 \usepackage{xcolor}
 \usepackage{hyperref}
 \xdefinecolor{blue}{rgb}{0.28,0.65,0.9}
+\definecolor{grey}{rgb}{0.45, 0.45, 0.45}
 \hypersetup{
     colorlinks,
     linkcolor={blue},
@@ -10,6 +11,7 @@
     urlcolor={blue}
 }
 \usepackage{setspace}
+\usepackage{multicol}
 
 
 % need this for the chunk captioning
@@ -22,3 +24,13 @@
 \makeatletter
 \@addtoreset{chunk}{section}
 \makeatother
+
+% % If you need to figure out what font you're using, this can be useful:
+% \makeatletter
+% \edef\textFontName{\fontname\csname
+%   \f@encoding/\f@family/\f@series/\f@shape/\f@size\endcsname}
+% \edef\mathFontName{\fontname\textfont0}
+% \edef\mathLetterFontName{\fontname\textfont1}
+% \makeatother
+% % Put  \textFontName in document to see font. 
+% % From https://tex.stackexchange.com/questions/471070/is-there-a-latex-command-to-print-the-name-of-the-font-used-for-text-and-for-mat
