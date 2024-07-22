@@ -4,13 +4,13 @@ blinded: 0
 authors:
 - name: Amelia McNamara ^[amelia.mcnamara@stthomas.edu]
   affiliation: |
-    | Department of Computer & Information Sciences, University of St Thomas
+    | Computer and Data Sciences Department, University of St Thomas
   email: amelia.mcnamara@stthomas.edu
 keywords: |
   R language, instruction, data science, statistical computing
   
 abstract: >
-  This paper reports on a head-to-head comparison run in a pair of introductory statistics labs, one conducted fully in the formula syntax, the other in tidyverse. Analysis of pre- and post-survey data show minimal differences between the two labs, with students reporting a positive experience regardless of section. Analysis of data from YouTube and RStudio Cloud show interesting distinctions. The formula section appeared to watch a larger proportion of pre-lab YouTube videos, but spend less time computing on RStudio Cloud. Conversely, the tidyverse section watched a smaller proportion of the videos and spent more time computing. Analysis of lab materials showed tidyverse labs tended to be slightly longer in terms of lines in the provided RMarkdown materials and minutes of the associated YouTube videos. The tidyverse labs exposed students to more distinct R functions, but reused functions more frequently. Both labs relied on a relatively small vocabulary of consistent functions, which can provide a starting point for instructors interested in teaching introductory statistics in R. This work provides additional evidence for instructors looking to choose between syntaxes for introductory statistics teaching. 
+  When incorporating programming into a statistics course, there are many pedagogical considerations. In R, one consideration is the particular R syntax used. This paper reports on a head-to-head comparison of a pair of introductory statistics labs, one conducted in the formula syntax, the other in tidyverse. Pre- and post-surveys show minimal differences between labs, with students reporting a positive experience regardless of section. Analysis of YouTube and RStudio Cloud data shows interesting distinctions. The formula section appeared to watch a larger proportion of pre-lab videos, but spend less time computing. Conversely, the tidyverse section watched a smaller proportion of videos and spent more time computing. The tidyverse labs were slightly longer in terms of lines of code and minutes of videos. The tidyverse labs exposed students to more distinct R functions, but reused functions more frequently. Both labs relied on a relatively small vocabulary of functions, which can provide a starting point for instructors interested in teaching introductory statistics in R. The instructor experience of teaching the two syntaxes diverged when discussing relationships between categorical variables, as well as working with numeric variable summary statistics. This work provides additional evidence for instructors looking to choose between syntaxes for introductory statistics.
 bibliography: references.bib
 biblio-style: agsm
 output:
@@ -29,7 +29,7 @@ editor_options:
 \doublespacing
 
 ```{r blinding, echo=FALSE}
-blind <- TRUE
+blind <- FALSE
 ```
 
 ```{r setup, include=FALSE}
@@ -210,7 +210,7 @@ topics <- tibble(week = 1:15, topic = c(NA, "DescribingData", "QuantitativeVaria
 
 When teaching statistics and data science, it is crucial for students to engage authentically with data. The revised Guidelines for Assessment and Instruction in Statistics Education (GAISE) College Report provides recommendations for instruction, including "Integrate real data with a context and purpose" and "Use technology to explore concepts and analyze data" [@carveretal2016]. Many instructors have students engage with data using technology through in-class experiences or separate lab activities.
 
-An important pedagogical decision when choosing to teach data analysis is the choice of tool. There has long been a divide between 'tools for learning' and 'tools for doing' data analysis [@mcnamara2015a]. Tools for learning include applets, and standalone software like TinkerPlots, Fathom, or their next-generation counterpart CODAP [@konoldmiller2001; @finzer2002a; @CODAP2021]. Tools for doing are used by professionals, and include software packages like SAS as well as programming languages like Julia, R, and Python.
+An important pedagogical decision when choosing to teach data analysis is the choice of tool. There has long been a divide between 'tools for learning' and 'tools for doing' data analysis [@mcnamara2015]. Tools for learning include applets, and standalone software like TinkerPlots, Fathom, or their next-generation counterpart CODAP [@konoldmiller2001; @finzer2002a; @CODAP2021]. Tools for doing are used by professionals, and include software packages like SAS as well as programming languages like Julia, R, and Python.
 
 Many tools for learning were inspired by Rolf Biehler's 1997 paper, "Software for Learning and for Doing Statistics." In it, Biehler called for more attention to the design of tools used for teaching. In particular, he was concerned with on-ramps for students (ensuring the tool was not too complex), as well as off-ramps (using one tool through an entire class, which could also extend further) [@biehler1997]. At the time he wrote the paper it was quite difficult to teach using an authentic tool for doing, because these tools lacked technological or pedagogical on-ramps.
 
@@ -220,9 +220,9 @@ For example, the UC Berkeley Data 8 course uses Python, including elements of th
 
 In R, the development of less-complex code for students has been under consideration for even longer [@pruimetal2011]. R offers non-standard evaluation, which allows package authors to create new 'syntax' for their packages [@morandatetal2012]. In human language, syntax is the set of rules for how words and sentences should be structured. If someone uses the wrong syntax in human language, people will hear there is something wrong with the speech or writing. However, because human understanding is flexible, the listener will probably still understand the general idea the speaker was trying to convey. Syntax in programming language is more formal-- it governs what code will execute, run, or compile correctly. Using the wrong syntax usually means failing to get a result from the program.
 
-Typically, programming languages have only one valid syntax. For example, an aphorism about Python is "There should be one-- and preferably only one --obvious way to do it" [@peters2004]. But, non-standard evaluation in R has allowed there to be many obvious ways to do the same task. There is some disagreement over whether syntax is a precise term for these differences. Other terms suggested for these variations in valid R code are 'dialects,' 'interfaces,' and 'domain specific languages.' Throughout this paper, we use the term syntax as a shorthand for these concepts. At present, there are three primary syntaxes used: base, formula, and `tidyverse` [@mcnamara2018a].
+Typically, programming languages have only one valid syntax. For example, an aphorism about Python is "There should be one-- and preferably only one --obvious way to do it" [@peters2004]. But, non-standard evaluation in R has allowed there to be many obvious ways to do the same task [@morandatetal2012, @wickham2019a]. There is some disagreement over whether syntax is a precise term for these differences. Other terms suggested for these variations in valid R code are 'dialects,' 'interfaces,' and 'domain specific languages.' Throughout this paper, we use the term syntax as a shorthand for these concepts. At present, there are three primary syntaxes used: base, formula, and `tidyverse` [@mcnamara2018a].
 
-The base syntax is used by the base R language [@rcoreteam2020], and is characterized by the use of dollar signs and square brackets. The formula syntax uses the tilde to separate response and explanatory variable(s) [@pruimetal2017]. The `tidyverse` syntax uses a data-first approach, and the pipe to move data between steps [@wickhametal2019]. In this paper, the base R pipe `|>` has been used, but in the original pedagogical materials students saw the `magrittr` pipe, `%>` [@bachewickham2014]. 
+The base syntax is used by the base R language [@rcoreteam2020], and is characterized by the use of dollar signs and square brackets. The formula syntax uses the tilde to separate response and explanatory variable(s) [@pruimetal2017]. The `tidyverse` syntax uses a data-first approach, and the pipe to move data between steps [@wickhametal2019]. In this paper, the base R pipe `|>` has been used, but in the original pedagogical materials students saw the `magrittr` pipe, `%>%` [@bachewickham2014]. 
 
 A comparison of using the three syntaxes for univariate statistics and displays can be seen in \ref{r-syntax}. This example code, like the rest in this paper, uses the `palmerpenguins` data [@horstetal2020]. All three pieces of code accomplish the same tasks, and all three use the R language. However, the syntax varies considerably.
 
@@ -250,7 +250,7 @@ penguins |>
   summarize(mean(bill_length_mm))
 ```
 
-There is some agreement about pedagogical best practices while teaching R. In particular, most educators agree that in order to reduce cognitive load, instructors should only teach one syntax, and should be as consistent as possible about that syntax [@mcnamaraetal2021a]. There is also some agreement that base R syntax is not the appropriate choice for introductory statistics, but there is widespread disagreement on whether the formula syntax or `tidyverse` syntax should be used in these courses.
+There is some agreement about pedagogical best practices while teaching R. In particular, most educators agree that in order to reduce cognitive load, instructors should only teach one syntax, and should be as consistent as possible about that syntax [@mcnamaraetal2021]. There is also some agreement that base R syntax is not the appropriate choice for introductory statistics, but there is widespread disagreement on whether the formula syntax or `tidyverse` syntax should be used in these courses.
 
 While there are strongly-held opinions on which syntax should be taught [@pruimetal2017; @cetinkaya-rundeletal2022], there is relatively little empirical evidence to support these opinions. In the realm of computer science, empirical studies have shown significant differences in the intuitiveness of languages, as well as error rates, based on language design choices [@stefiketal2011; @stefiksiebert2013]. Thus, it seems likely there are language choices that could make data science programming easier (or harder) for users, particularly novices.
 
@@ -574,6 +574,7 @@ prepost_pos |>
     axis.ticks.x = element_blank(),
     axis.ticks.y = element_blank(),
     legend.position = "bottom",
+    legend.justification = c(1, 0),
     legend.title = element_blank(),
     text = element_text(size = 15),
     strip.text.y.left = element_text(angle = 0, size = 8),
@@ -896,7 +897,7 @@ overallmean <- rstudio_cloud |>
 
 Nevertheless, because the numbers would be inflated in the same way in both sections, we will proceed in comparing them. Using data from the entire semester, students in the `tidyverse` section had a mean number of compute hours per month of `r pull(overallmean, tidyverse)` and students in the formula section had a mean of `r pull(overallmean, formula)` hours. However, there was variability in amount of compute time used per month. 
 
-Average use per student per month can be seen in Table \ref{tab:approximate-compute}. The mean compute time for both sections increases from September to October. This makes sense, because only two labs were due in September (an introductory lab with minimal coding, and the first lab on categorical variables), whereas five labs were due in October (weeks 4-8 in Table \ref{topics}). Compute time then drops down in November for the formula section, which makes sense because only two labs and an assessment were due in November (weeks 9-12 in Table \ref{topics}). November data is missing for the `tidyverse` section. Compute time in December is lower still for the formula section, and also appears lower for the `tidyverse` section. There were three labs due in December (weeks 13-15 in Table \ref{topics}), as well as an assessment and a final writeup. 
+Average use per student per month can be seen in Table \ref{tab:approximate-compute}. The mean compute time for both sections increases from September to October. This makes sense, because only two labs were due in September (an introductory lab with minimal coding, and the first lab on categorical variables), whereas five labs were due in October (weeks 4-8 in Table \ref{topics}). Compute time then drops down in November for the formula section, which makes sense because only two labs and an assessment were due in November (weeks 9-12 in Table \ref{topics}). November data is missing for the `tidyverse` section. Compute time in December is lower still for the formula section, and also appears lower for the `tidyverse` section. There were three labs due in December (weeks 13-15 in Table \ref{topics}), as well as an assessment and a final write-up. 
 
 Although the labs and assessments were of varying difficulty, we can compute a very crude "time per assignment" by dividing the average number of compute hours per month by the number of assignments due in that month, as seen in the final column of Table \ref{tab:approximate-compute}.
 
@@ -985,7 +986,7 @@ bothfunctions2 <- formulafunctions |>
 
 Another source of incidental data is the set of RMarkdown documents, which allow us to study the number of functions students were exposed to in each section.
 
-Cognitive load theory suggests showing students fewer functions and reusing them many times over the course of the semester would allow them to move some of the information from their working memory to their longterm memory [@lovettgreenhouse2000]. Because of this, it is ideal for instructors to minimize the number of functions they show students, and show each function at least twice  [@mcnamaraetal2021a].
+Cognitive load theory suggests showing students fewer functions and reusing them many times over the course of the semester would allow them to move some of the information from their working memory to their longterm memory [@lovettgreenhouse2000]. Because of this, it is ideal for instructors to minimize the number of functions they show students, and show each function at least twice  [@mcnamaraetal2021].
 
 One argument against the use of the `tidyverse` in teaching is that it contains too many functions, and therefore is overwhelming for students. However, when teaching a course (particularly an introductory one) an instructor never shows all the functions in a package. Instead, it is crucial to identify just the most essential functions, ideally with consistent syntax.
 
@@ -1363,7 +1364,7 @@ We hope this work helps answer some initial questions about the impact of R synt
 
 No matter which syntax an instructor chooses, it appears possible to reduce the cognitive load of coding in R by limiting the number of functions shown in a semester, and provide students with a positive learning experience.
 
-## Resources and packages
+## Resources, packages, and data availability
 
 All pedagogical materials used for the course under discussion are available on GitHub and are Creative Commons licensed, so they can be used or remixed by anyone who wants (\url{https://github.com/AmeliaMN/STAT220-labs}). All code and anonymized data from this paper is also available on GitHub, for reproducibility (\url{https://github.com/AmeliaMN/ComparingSyntaxForModeling}). The same information is mirrored on the Open Science Framework (\url{doi.org/10.17605/OSF.IO/Y5TFV}). Data analysis was performed in R, and the paper was written in RMarkdown. The categorical color palette was chosen using Colorgorical [@gramazioetal2017], and colors for the Likert scale plot are from ColorBrewer [@harrowerbrewer2003]. Example data used throughout the paper is from `palmerpenguins` [@horstetal2020]. Code from the formula section uses the R packages loaded in that course, `mosaic` and `ggformula` (`ggformula` is now loaded automatically with `mosaic`) [@pruimetal2017; @kaplanpruim2020]. Code from the `tidyverse` section uses the packages from that course, `tidyverse` and `infer` [@wickhametal2019; @brayetal2021].
 
@@ -1379,7 +1380,7 @@ Thanks to Sean Kross for his guidance about parsing R function data and Nick Hor
 # Functions used {#sec:functions}
 
 
-
+\noindent
 \begin{singlespace}
 \begin{multicols*}{3}
 \noindent
@@ -1387,10 +1388,10 @@ Thanks to Sean Kross for his guidance about parsing R function data and Nick Hor
 bothfunctions2 |>
   mutate(text = paste0("\\texttt{\\textcolor{grey}{", package, "::}", text, "}", " \\newline")) |>
   mutate(text = gsub("_", "\\_", text, fixed = TRUE)) |>
+  add_row(text = "\\noindent \\newline", .before = 1) |>
   pull(text) |>
   walk(cat)
 ```
-
 
 \noindent
 Used in both sections.
@@ -1401,6 +1402,7 @@ Used in both sections.
 formulafunctions_unique2 |>
   mutate(text = paste0("\\texttt{\\textcolor{grey}{", package, "::}", text, "}", " \\newline")) |>
   mutate(text = gsub("_", "\\_", text, fixed = TRUE)) |>
+  add_row(text = "\\noindent \\newline", .before = 1) |>
   pull(text) |>
   walk(cat)
 ```
@@ -1414,6 +1416,7 @@ Used only in formula.
 tidyfunctions_unique2 |>
   mutate(text = paste0("\\texttt{\\textcolor{grey}{", package, "::}", text, "}", "\\newline")) |>
   mutate(text = gsub("_", "\\_", text, fixed = TRUE)) |>
+  add_row(text = "\\noindent \\newline", .before = 1) |>
   pull(text) |>
   walk(cat)
 ```
