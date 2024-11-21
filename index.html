@@ -612,6 +612,8 @@ display: none;
 <p>Typically, programming languages have only one valid syntax. For example, an aphorism about Python is “There should be one– and preferably only one –obvious way to do it” <span class="citation">(Peters 2004)</span>. But, non-standard evaluation in R has allowed there to be many obvious ways to do the same task <span class="citation">Wickham (2019)</span>. There is some disagreement over whether syntax is a precise term for these differences. Other terms suggested for these variations in valid R code are ‘dialects,’ ‘interfaces,’ and ‘domain specific languages.’ Throughout this paper, we use the term syntax as a shorthand for these concepts. At present, there are three primary syntaxes used: base, formula, and <code>tidyverse</code> <span class="citation">(McNamara 2018)</span>.</p>
 <p>The base syntax is used by the base R language <span class="citation">(R Core Team 2020)</span>, and is characterized by the use of dollar signs and square brackets. The formula syntax uses the tilde to separate response and explanatory variable(s) <span class="citation">(Pruim, Kaplan, and Horton 2017)</span>. The <code>tidyverse</code> syntax uses a data-first approach, and the pipe to move data between steps <span class="citation">(Wickham et al. 2019)</span>. In this paper, the base R pipe <code>|&gt;</code> has been used, but in the original pedagogical materials students saw the <code>magrittr</code> pipe, <code>%&gt;%</code> <span class="citation">(Bache and Wickham 2014)</span>.</p>
 <p>A comparison of using the three syntaxes for univariate statistics and displays can be seen in <a href="#tab:r-syntax"><strong>??</strong></a>. This example code, like the rest in this paper, uses the <code>palmerpenguins</code> data <span class="citation">(Horst, Hill, and Gorman 2020)</span>. All three pieces of code accomplish the same tasks, and all three use the R language. However, the syntax varies considerably.</p>
+<div>
+<p><span id="r-syntax" style="display:block;"></span></p>
 <pre class="r"><code># load data
 library(palmerpenguins)
 data(&quot;penguins&quot;)
@@ -632,9 +634,10 @@ ggplot(penguins) +
 penguins |&gt;
   drop_na(bill_length_mm) |&gt;
   summarize(mean(bill_length_mm))</code></pre>
-<p class="caption" id="r-syntax">
-“Making a histogram of bill length from the penguins dataset, then taking the mean, using three different R syntaxes. Base syntax is characterized by the dollar sign, formula by the tilde, and tidyvese is dataframe-first.”
+<p class="caption">
+Making a histogram of bill length from the penguins dataset, then taking the mean, using three different R syntaxes. Base syntax is characterized by the dollar sign, formula by the tilde, and tidyvese is dataframe-first.
 </p>
+</div>
 <p>
 </p>
 <p>There is some agreement about pedagogical best practices while teaching R. In particular, most educators agree that in order to reduce cognitive load, instructors should only teach one syntax, and should be as consistent as possible about that syntax <span class="citation">(McNamara et al. 2021)</span>. There is also some agreement that base R syntax is not the appropriate choice for introductory statistics, but there is widespread disagreement on whether the formula syntax or <code>tidyverse</code> syntax should be used in these courses.</p>
@@ -667,7 +670,82 @@ penguins |&gt;
 </div>
 <div id="sec:materials" class="section level2" number="2.3">
 <h2><span class="header-section-number">2.3</span> Topics and materials</h2>
-<p>The course these labs accompanied was an introductory statistics course using the Lock5 textbook <span class="citation">(Lock et al. 2020)</span>. Weekly lab topics were aligned with lecture content, and standardized across all labs for the semester (13 lab sections using a variety of different software). The topics covered are shown in Table <a href="#topics"><strong>??</strong></a>.</p>
+<p>The course these labs accompanied was an introductory statistics course using the Lock5 textbook <span class="citation">(Lock et al. 2020)</span>. Weekly lab topics were aligned with lecture content, and standardized across all labs for the semester (13 lab sections using a variety of different software). The topics covered are shown in Table <a href="#tab:topics">2.1</a>.</p>
+<table>
+<caption><span id="tab:topics">Table 2.1: </span> List of topics for labs across the 15-week semester.</caption>
+<thead>
+<tr class="header">
+<th>Week</th>
+<th align="left">Topic</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td align="left"><strong>No lab, short week</strong></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td align="left">Describing data: determining the number of observations and variables in a dataset, variable types.</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td align="left">Categorical variables: exploratory data analysis for one or two categorical variables. Frequency tables, relative frequency tables, bar charts, two-way tables, and side-by-side bar charts.</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td align="left">Quantitative variables: exploratory data analysis for one quantitative variable. Histograms, dot plots, density plots, and summary statistics like mean, median, and standard deviation.</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td align="left">Correlation and regression: exploratory data analysis for two quantitative variables. Correlation, scatterplot, simple linear regression as a descriptive technique.</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td align="left">Bootstrap intervals: the use of the bootstrap to construct non-parametric confidence intervals.</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td align="left">Randomization tests: the use of randomization to perform non-parametric hypothesis tests.</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td align="left">Inference for a single proportion: use of the normal distribution to construct confidence intervals and perform hypothesis tests for a single proportion.</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td align="left">Inference for a single mean: use of the t-distribution to construct confidence intervals and perform hypothesis tests for a single mean.</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td align="left">Inference for two samples: use of distributional approximations (normal or t) to perform inference for a difference of proportions or a difference of means.</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td align="left"><strong>No lab, assessment</strong></td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td align="left"><strong>No lab, Thanksgiving</strong></td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td align="left">ANOVA: inference for more than two means, using the F distribution.</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td align="left">Chi-square: inference for more than two counts, using the <span class="math inline">\(\chi^2\)</span> distribution.</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td align="left">Inference for regression: inference for the slope coefficient in simple linear regression, prediction and confidence intervals. Multiple regression.</td>
+</tr>
+<tr class="even">
+<td>Finals</td>
+<td align="left"><strong>Second assessment</strong></td>
+</tr>
+</tbody>
+</table>
 <p>Although this was a 15-week semester, there are only 12 lab topics. Labs were not held during the first week of classes or during Thanksgiving week. Additionally, there were two “lab assessments” to gauge student understanding of concepts within the context of their lab software. One took place during finals week, the other was scheduled in week 11.</p>
 <div id="sec:rmd" class="section level3" number="2.3.1">
 <h3><span class="header-section-number">2.3.1</span> RMarkdown documents</h3>
@@ -1036,38 +1114,49 @@ Figure 3.5: Top 15 functions in each section. The formula section saw a total of
 <p>The second lab of the semester focused on exploratory data analysis of one and two categorical variables. Because this was the first lab where students needed to apply multiple functions to their own data, it was bound to be longer and more challenging. However, there were additional complications introduced in the <code>tidyverse</code> lab.</p>
 <p>In this week (week 3 of the semester), the labs were of particularly different lengths. For the formula section the RMarkdown document was 89 lines long, and the two videos totaled 28 minutes. The RMarkdown document for the <code>tidyverse</code> section was 125 lines long, and the videos totaled 35 minutes. There is a clear reason why.</p>
 <p>In the formula section, students found frequency tables and relative frequency tables with code as in <a href="#fig:tally-ex1"><strong>??</strong></a> and <a href="#fig:tally-ex2"><strong>??</strong></a>.</p>
+<div>
+<p><span id="tally-ex1" style="display:block;"></span></p>
 <pre class="r"><code>tally(~island, data = penguins)
 tally(~island, data = penguins, format = &quot;percent&quot;)
 tally(species ~ island, data = penguins)</code></pre>
-<p class="caption" id="tally-ex1">
-“Making tables of one and two categorical variables using the formula syntax and from the package.”
+<p class="caption">
+Making tables of one and two categorical variables using the formula syntax and from the package.
 </p>
+</div>
 <p>
 </p>
+<div>
+<p><span id="tally-ex2" style="display:block;"></span></p>
 <pre class="r"><code>tally(species ~ island, data = penguins, format = &quot;percent&quot;)</code></pre>
 <pre><code>           island
 species        Biscoe     Dream Torgersen
   Adelie     26.19048  45.16129 100.00000
   Chinstrap   0.00000  54.83871   0.00000
   Gentoo     73.80952   0.00000   0.00000</code></pre>
-<p class="caption" id="tally-ex2">
-“Making a table of two categorical variables using the formula syntax and function, along with the percent option.”
+<p class="caption">
+Making a table of two categorical variables using the formula syntax and function, along with the percent option.
 </p>
+</div>
 <p>
 </p>
 <p>The <code>tally()</code> function produces a familiar-looking two-way table, which took very little explanation, other than to show how reversing the variables in the formula led to different percentages, as is seen in <a href="#tally-ex3"><strong>??</strong></a>. Compare <a href="#tally-ex2"><strong>??</strong></a> and <a href="#tally-ex3"><strong>??</strong></a> to see the effect of swapping the order of variables.</p>
+<div>
+<p><span id="tally-ex3" style="display:block;"></span></p>
 <pre class="r"><code>tally(island ~ species, data = penguins, format = &quot;percent&quot;)</code></pre>
 <pre><code>           species
 island         Adelie Chinstrap    Gentoo
   Biscoe     28.94737   0.00000 100.00000
   Dream      36.84211 100.00000   0.00000
   Torgersen  34.21053   0.00000   0.00000</code></pre>
-<p class="caption" id="tally-ex3">
-“Making a table of two categorical variables using the formula syntax and function, with variables swapped.”
+<p class="caption">
+Making a table of two categorical variables using the formula syntax and function, with variables swapped.
 </p>
+</div>
 <p>
 </p>
 <p>However, in the <code>tidyverse</code> section, both the code and output took longer to explain. Initial summary statistics for categorical variables are computed in <a href="#tidy-tally1"><strong>??</strong></a>, while the tidy version of a relative frequency table is shown in <a href="#tidy-tally2"><strong>??</strong></a>.</p>
+<div>
+<p><span id="tidy-tally1" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   group_by(island) |&gt;
   summarize(n = n())
@@ -1080,11 +1169,14 @@ penguins |&gt;
 penguins |&gt;
   group_by(island, species) |&gt;
   summarize(n = n())</code></pre>
-<p class="caption" id="tidy-tally1">
-“Computing summary statistics for one and two categorical variables in the syntax. These functions come from the package of the .”
+<p class="caption">
+Computing summary statistics for one and two categorical variables in the syntax. These functions come from the package of the .
 </p>
+</div>
 <p>
 </p>
+<div>
+<p><span id="tidy-tally2" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   group_by(island, species) |&gt;
   summarize(n = n()) |&gt;
@@ -1098,12 +1190,15 @@ penguins |&gt;
 3 Dream     Adelie       56 0.452
 4 Dream     Chinstrap    68 0.548
 5 Torgersen Adelie       52 1    </code></pre>
-<p class="caption" id="tidy-tally2">
-“Computing summary statistics for two categorical variables in the syntax.”
+<p class="caption">
+Computing summary statistics for two categorical variables in the syntax.
 </p>
+</div>
 <p>
 </p>
 <p>Again, reversing the order of the variables (this time, inside the <code>group_by()</code> function) changed the percentages, but it was more difficult to determine how the percentages added up, because the data was in long format, rather than wide format. Compare <a href="#tidy-tally2"><strong>??</strong></a> and <a href="#tidy-tally3"><strong>??</strong></a> to see the effect of swapping the order of variables.</p>
+<div>
+<p><span id="tidy-tally3" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   group_by(species, island) |&gt;
   summarize(n = n()) |&gt;
@@ -1117,9 +1212,10 @@ penguins |&gt;
 3 Adelie    Torgersen    52 0.342
 4 Chinstrap Dream        68 1    
 5 Gentoo    Biscoe      124 1    </code></pre>
-<p class="caption" id="tidy-tally3">
-“Computing summary statistics for two categorical variables in the syntax, with variables swapped.”
+<p class="caption">
+Computing summary statistics for two categorical variables in the syntax, with variables swapped.
 </p>
+</div>
 <p>
 </p>
 </div>
@@ -1128,32 +1224,43 @@ penguins |&gt;
 <p>As discussed in Section <a href="#sec:numfunc">3.5</a>, one reason why the <code>tidyverse</code> section saw more functions than the formula section is the way summary statistics are computed in the <code>tidyverse</code>.</p>
 <p>In formula syntax, summary statistics were always a single function call, like <code>mean()</code>, <code>sd()</code> or <code>favstats()</code>, whereas for the <code>tidyverse</code> section those summary functions needed to be wrapped within the <code>summarize()</code> function.</p>
 <p>In the lab focused on exploratory data analysis for quantitative variables, the formula students found the mean as shown in <a href="#formulamean"><strong>??</strong></a>.</p>
+<div>
+<p><span id="formulamean" style="display:block;"></span></p>
 <pre class="r"><code>mean(~bill_length_mm, data = penguins, na.rm = TRUE)</code></pre>
-<p class="caption" id="formulamean">
-“Using the function to compute the mean. masks the base version of , and makes it formula-aware.”
+<p class="caption">
+Using the function to compute the mean. masks the base version of , and makes it formula-aware.
 </p>
+</div>
 <p>
 </p>
 <p>In the <code>tidyverse</code> section, they found the mean as shown in <a href="#meantidy"><strong>??</strong></a></p>
+<div>
+<p><span id="meantidy" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   drop_na(bill_length_mm) |&gt;
   summarize(mean(bill_length_mm))</code></pre>
-<p class="caption" id="meantidy">
-“Finding the mean using syntax. The and functions are from the package, comes from base R.”
+<p class="caption">
+Finding the mean using syntax. The and functions are from the package, comes from base R.
 </p>
+</div>
 <p>
 </p>
 <p>The formula approach has the benefit of being a single line, but it relies on the use of <code>na.rm = TRUE</code>, which students found hard to remember. The instructor also chose to show how to change the default <code>NA</code> action by using <code>options(na.rm = TRUE)</code>. This was more popular with students, because they didn’t have to add that argument to their summary statistic functions, but became confusing in the subsequent lab when the <code>cor()</code> function required the <code>use = &quot;complete.obs&quot;</code> argument.</p>
 <p>Dealing with missing values was more verbose in the <code>tidyverse</code> section, but also was easier to explain to students. And, the <code>drop_na()</code> approach could be easily extended for the subsequent lab, removing the need to talk about <code>use = &quot;complete.obs&quot;</code>.</p>
 <p>After doing single summary statistics for a quantitative variable, the lab asked students to complete a five number summary. In the formula lab, students found the five number summary as shown in <a href="#favstats"><strong>??</strong></a>.</p>
+<div>
+<p><span id="favstats" style="display:block;"></span></p>
 <pre class="r"><code>favstats(~bill_length_mm, data = penguins)</code></pre>
-<p class="caption" id="favstats">
-“The function provides many common summary statistics for one quantitative variable. The function automatically drops missing values.”
+<p class="caption">
+The function provides many common summary statistics for one quantitative variable. The function automatically drops missing values.
 </p>
+</div>
 <p>
 </p>
 <p>This approach deals with missing values as part of the standard output, which is appealing to students but also provides an inconsistency that is hard to explain.</p>
 <p>In the <code>tidyverse</code> section, the instructor chose to show two approaches. Both approaches are in <a href="#tidy-summary1"><strong>??</strong></a>, and both needed to include <code>drop_na()</code> to deal with missing values. Past those similarities, the approaches are divergent.</p>
+<div>
+<p><span id="tidy-summary1" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   drop_na(bill_length_mm) |&gt;
   summarize(
@@ -1168,9 +1275,10 @@ penguins |&gt;
   drop_na(bill_length_mm) |&gt;
   pull(bill_length_mm) |&gt;
   fivenum()</code></pre>
-<p class="caption" id="tidy-summary1">
-“Two approaches for doing summary statistics of one quantitative variable in syntax. The first is quite verbose, the second is more compact but introduces a function never seen again. Both approaches use functions from the package.”
+<p class="caption">
+Two approaches for doing summary statistics of one quantitative variable in syntax. The first is quite verbose, the second is more compact but introduces a function never seen again. Both approaches use functions from the package.
 </p>
+</div>
 <p>
 </p>
 <p>It would have been preferable for the instructor to choose a single solution to present to students, but she was faced with a dilemma. The first <code>tidyverse</code> approach is very verbose, but it follows nicely from other summary statistics students had already seen, just adding a few more functions like <code>min()</code>, <code>max()</code>, and <code>quantile()</code>. The second solution is more concise, but it introduces the <code>pull()</code> function, which was never used again in the course. This brings back the consideration of how many times students will see the same function.</p>
@@ -1182,6 +1290,8 @@ penguins |&gt;
 <p>Similar to the week with descriptive statistics, this week’s labs diverged in length. The formula section’s RMarkdown document was 89 lines long, and the videos totaled 19 minutes. That same week, the <code>tidyverse</code> RMarkdown document was 119 lines long, and the videos totaled 27 minutes.</p>
 <p>The explanation for the varying time is similar, as well. Week 10 focused on inference for two samples; that is, inference for a difference of proportions or a difference of means. While a difference of means makes it fairly easy to know which variable should go where (the quantitative variable is the response variable to take the mean of, and the categorical variable is the explanatory variable splitting it), with a difference of two proportions the concept comes back to thinking about two-way tables. Again, the <code>tidyverse</code> presentation of a “two-way table” made this more difficult to conceptualize.</p>
 <p>In the formula section, students saw code like that in <a href="#formula-prop"><strong>??</strong></a>.</p>
+<div>
+<p><span id="formula-prop" style="display:block;"></span></p>
 <pre class="r"><code>tally(island ~ sex, data = penguins, format = &quot;proportion&quot;)</code></pre>
 <pre><code>        sex
 island      female      male
@@ -1199,13 +1309,16 @@ alternative hypothesis: two.sided
 sample estimates:
    prop 1    prop 2 
 0.5673759 0.5724138 </code></pre>
-<p class="caption" id="formula-prop">
-“Making a two-way table and performing inference for a difference of proportions using the formula syntax. In order for this code to run as-is, the Torgerson island has to be removed so there are just two categories in the variable exttt{island}.”
+<p class="caption">
+Making a two-way table and performing inference for a difference of proportions using the formula syntax. In order for this code to run as-is, the Torgerson island has to be removed so there are just two categories in the variable exttt{island}.
 </p>
+</div>
 <p>
 </p>
 <p>The code for finding the point estimate using <code>tally()</code> is quite similar to the code for performing inference using <code>prop.test()</code>. And, the output from <code>prop.test()</code> includes the sample estimates, for comparison with the numbers seen in the initial table. This allows students to verify they are comparing the proportions they intended to.</p>
 <p>In the <code>tidyverse</code> section, the code was not as consistent. Students in this section saw code like that shown in <a href="#tidy-prop"><strong>??</strong></a>.</p>
+<div>
+<p><span id="tidy-prop" style="display:block;"></span></p>
 <pre class="r"><code>penguins |&gt;
   group_by(sex, island) |&gt;
   summarize(n = n()) |&gt;
@@ -1230,9 +1343,10 @@ penguins |&gt;
   statistic chisq_df p_value alternative lower_ci upper_ci
       &lt;dbl&gt;    &lt;dbl&gt;   &lt;dbl&gt; &lt;chr&gt;          &lt;dbl&gt;    &lt;dbl&gt;
 1  2.89e-30        1    1.00 two.sided     -0.125    0.115</code></pre>
-<p class="caption" id="tidy-prop">
-“Making a `two-way table’ and performing inference for a difference of proportions using the syntax. Again, the Torgerson island data has been removed beforehand.”
+<p class="caption">
+Making a `two-way table’ and performing inference for a difference of proportions using the syntax. Again, the Torgerson island data has been removed beforehand.
 </p>
+</div>
 <p>
 </p>
 <p>In <code>tidyverse</code> syntax the code for finding the point estimate (<code>dplyr</code>’s <code>group_by()</code>, <code>summarize()</code> and then <code>mutate()</code>) is quite different from the code performing the inference (the <code>infer</code> <code>prop_test()</code> function). And, the output from the inferential <code>prop_test()</code> function does not include the sample estimates, which makes it harder to determine if the code was correct.</p>

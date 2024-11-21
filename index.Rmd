@@ -16,6 +16,7 @@ biblio-style: agsm
 site: bookdown::html_document2
 output: bookdown::html_document2
 cache: true
+self_contained: false
     # collapse: subsection
     # base_format: rticles::asa_article
     # keep_tex: yes
@@ -58,7 +59,7 @@ chunk_hook <- knit_hooks$get("chunk")
 knit_hooks$set(chunk = function(x, options) {
   x <- chunk_hook(x, options)
   if (!is.null(options$codecap)) {
-    x <- paste0(x, '\n<p class="caption" id="', options$ref, '">"', options$codecap, '"</p>\n')
+    x <- paste0('\n<div><span style="display:block;" id = "', options$ref, '"></span>', x, '\n<p class="caption">', options$codecap, '</p></div>\n')
   }
   if (!is.null(options$ref)) {
     x <- paste0(x, "\n\\label{", options$ref, "}\n")
@@ -327,37 +328,30 @@ For the students who had programmed before, none had prior experience with R. Th
 
 ## Topics and materials {#sec:materials}
 
-The course these labs accompanied was an introductory statistics course using the Lock5 textbook [@locketal2020]. Weekly lab topics were aligned with lecture content, and standardized across all labs for the semester (13 lab sections using a variety of different software). The topics covered are shown in Table \@ref(topics).
+The course these labs accompanied was an introductory statistics course using the Lock5 textbook [@locketal2020]. Weekly lab topics were aligned with lecture content, and standardized across all labs for the semester (13 lab sections using a variety of different software). The topics covered are shown in Table \@ref(tab:topics).
 
-```{=tex}
-\begin{table}
-\singlespacing
-{\setlength{\extrarowheight}{0.1cm}
-\begin{tabular}{p{1cm}|p{15cm}}
-Week & Topic \\
-1 & \em{No lab, short week} \\  
-2 & Describing data: determining the number of observations and variables in a dataset, variable types. \\  
-3 & Categorical variables: exploratory data analysis for one or two categorical variables. Frequency tables, relative frequency tables, bar charts, two-way tables, and side-by-side bar charts. \\  
-4 & Quantitative variables: exploratory data analysis for one quantitative variable. \newline Histograms, dot plots, density plots, and summary statistics like mean, median, and standard deviation. \\  
-5 & Correlation and regression: exploratory data analysis for two quantitative variables. Correlation, scatterplot, simple linear regression as a descriptive technique. \\  
-6 & Bootstrap intervals: the use of the bootstrap to construct non-parametric confidence intervals. \\  
-7 & Randomization tests: the use of randomization to perform non-parametric \linebreak hypothesis tests. \\  
-8 & Inference for a single proportion: use of the normal distribution to construct 
-\linebreak confidence intervals and perform hypothesis tests for a single proportion. \\  
-9 & Inference for a single mean: use of the t-distribution to construct confidence intervals and perform hypothesis tests for a single mean. \\  
-10 & Inference for two samples: use of distributional approximations (normal or t) to perform inference for a difference of proportions or a difference of means.\\  
-11 & \em{No lab, assessment}\\  
-12 & \em{No lab, Thanksgiving}\\  
-13 & ANOVA: inference for more than two means, using the F distribution.\\  
-14 & Chi-square: inference for more than two counts, using the $\chi^2$ distribution.\\  
-15 & Inference for regression: inference for the slope coefficient in simple linear regression, prediction and confidence intervals. Multiple regression. \\  
-Finals & \em{Second assessment} \\  
-\end{tabular}
-}
-\caption{List of topics for labs across the 15-week semester.}\label{topics}
-\end{table}
-\doublespacing
-```
+
+Week    Topic
+---     ----------------------------------------------------------------------------
+1       **No lab, short week** 
+2       Describing data: determining the number of observations and variables in a dataset, variable types. 
+3       Categorical variables: exploratory data analysis for one or two categorical variables. Frequency tables, relative frequency tables, bar charts, two-way tables, and side-by-side bar charts. 
+4       Quantitative variables: exploratory data analysis for one quantitative variable. Histograms, dot plots, density plots, and summary statistics like mean, median, and standard deviation.   
+5       Correlation and regression: exploratory data analysis for two quantitative variables. Correlation, scatterplot, simple linear regression as a descriptive technique. 
+6       Bootstrap intervals: the use of the bootstrap to construct non-parametric confidence intervals.  
+7       Randomization tests: the use of randomization to perform non-parametric  hypothesis tests.
+8       Inference for a single proportion: use of the normal distribution to construct confidence intervals and perform hypothesis tests for a single proportion. 
+9       Inference for a single mean: use of the t-distribution to construct confidence intervals and perform hypothesis tests for a single mean.
+10      Inference for two samples: use of distributional approximations (normal or t) to perform inference for a difference of proportions or a difference of means.
+11      **No lab, assessment**
+12      **No lab, Thanksgiving**
+13      ANOVA: inference for more than two means, using the F distribution. 
+14      Chi-square: inference for more than two counts, using the $\chi^2$ distribution.
+15      Inference for regression: inference for the slope coefficient in simple linear regression, prediction and confidence intervals. Multiple regression.  
+Finals  **Second assessment** 
+
+Table: (\#tab:topics) List of topics for labs across the 15-week semester.
+
 Although this was a 15-week semester, there are only 12 lab topics. Labs were not held during the first week of classes or during Thanksgiving week. Additionally, there were two "lab assessments" to gauge student understanding of concepts within the context of their lab software. One took place during finals week, the other was scheduled in week 11.
 
 ### RMarkdown documents {#sec:rmd}
@@ -702,7 +696,7 @@ prepostsurvey |>
 
 Another question on the post-survey asked students "How was the experience of learning to program in R?" Overall, students seem to have positive sentiment toward learning R, whether in the formula or the `tidyverse` section. As seen in Figure \@ref(tab:post-sentiment), most students said either the experience was "not what I expected -- in a good way" or "About what I expected -- in a good way."
 
-```{r post-sentiment}
+```{r post-sentiment, tab.cap="Responses to the question, ``How was the experience of learning to program in R?''"}
 
 # fig.cap = "Responses to the question, ``How was the experience of learning to program in R?''"
 x <- prepostsurvey |>
@@ -719,7 +713,7 @@ x <- prepostsurvey |>
   
 
 x |>
-  kable(col.names = c("Section", "Response", "n", "Percent"), caption = "Responses to the question, ``How was the experience of learning to program in R?''", booktabs = TRUE, linesep = "", format = "latex") |>
+  kable(col.names = c("Section", "Response", "n", "Percent"), booktabs = TRUE, linesep = "", format = "latex") |>
   collapse_rows(columns = 1, valign = "top", latex_hline = "major")
 
 
@@ -916,7 +910,7 @@ rstudio_cloud_month <- rstudio_cloud |>
   select(section, info, month) 
 ```
 
-```{r approximate-compute, results='asis'}
+```{r approximate-compute, results='asis', tab.cap= "RStudio Cloud usage statistics. Average use per student per month, broken down by section. To find approximate time per assignment, we have divided each month's average by the number of assignments due in the month. The difference between the sections is also computed, and converted into minutes."}
 options(knitr.kable.NA = "missing")
 topics2 <- tibble(week = 1:16, topic = c(NA, "DescribingData", "QuantitativeVariables", "CategoricalVariables", "Regression", "Bootstrap", "Randomization", "InferenceSingleProportion", "InferenceSingleMean", "TwoSample", "assessment", NA, "ANOVA", "ChiSquare", "RegressionInference", "assessment"))
 
@@ -952,7 +946,7 @@ rstudio_cloud_assignment <- rstudio_cloud |>
 
 cloud_table <- rstudio_cloud_assignment |>
   select(section, info, n, num) |>
-  kable(col.names = c( "", "mean compute time (sd)", "number of \n assignments", "approximate time \n  per assignment"), caption = "RStudio Cloud usage statistics. Average use per student per month, broken down by section. To find approximate time per assignment, we have divided each month's average by the number of assignments due in the month. The difference between the sections is also computed, and converted into minutes.", booktabs = TRUE, format = "html") |>
+  kable(col.names = c( "", "mean compute time (sd)", "number of \n assignments", "approximate time \n  per assignment"), booktabs = TRUE, format = "html") |>
   pack_rows(index = c("September" = 3, "October" = 3, "November" = 3, "December" = 3)) |>
   column_spec(2:4, width = c("1.2in", "0.9in", "1.5in"))
 
